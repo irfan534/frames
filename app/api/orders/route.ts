@@ -1,10 +1,36 @@
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { checkoutSchema } from "@/lib/validations";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { generateWhatsAppMessage, generateWhatsAppUrl } from "@/lib/whatsapp";
 import { getShopConfig } from "@/lib/utils";
 
+const RATE_LIMIT_WINDOW = 10 * 60 * 1000;
+const RATE_LIMIT_MAX = 3;
+const orderRateLimit = new Map<string, { count: number; resetAt: number }>();
+
 export async function POST(request: Request) {
+  const headersList = await headers();
+  const forwarded = headersList.get("x-forwarded-for");
+  const ip = forwarded ? forwarded.split(",")[0].trim() : "unknown";
+  const now = Date.now();
+  const record = orderRateLimit.get(ip);
+
+  if (record && now < record.resetAt) {
+    if (record.count >= RATE_LIMIT_MAX) {
+      return NextResponse.json(
+        { error: "Too many orders. Please try again later." },
+        { status: 429 }
+      );
+    }
+    record.count++;
+  } else {
+    orderRateLimit.set(ip, {
+      count: 1,
+      resetAt: now + RATE_LIMIT_WINDOW
+    });
+  }
+
   const payload = await request.json().catch(() => null);
   const parsed = checkoutSchema.safeParse(payload);
 

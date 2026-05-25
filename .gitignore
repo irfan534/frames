@@ -8,3 +8,8 @@ coverage
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Build artifacts
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+.next/
