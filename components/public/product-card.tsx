@@ -4,12 +4,12 @@ import { Heart } from "lucide-react";
 import { AddToCartButton } from "@/components/public/add-to-cart-button";
 import { Badge } from "@/components/ui/badge";
 import type { Frame } from "@/lib/types";
-import { formatCurrency, imageFallback } from "@/lib/utils";
+import { formatCurrency, framePrimaryImage } from "@/lib/utils";
 
 const swatches = ["#111111", "#0D6E6E", "#B08968"];
 
 export function ProductCard({ frame }: { frame: Frame }) {
-  const image = frame.image_url || imageFallback(frame.frame_code);
+  const image = framePrimaryImage(frame);
   const mrp = Math.round(Number(frame.price) * 1.22);
 
   return (

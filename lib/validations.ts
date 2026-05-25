@@ -66,6 +66,7 @@ export const frameSchema = z.object({
   price: z.coerce.number().positive("Price must be positive"),
   quantity: z.coerce.number().int().min(0, "Quantity cannot be negative"),
   image_url: z.string().trim().url().optional().or(z.literal("")),
+  image_urls: z.array(z.string().trim().url()).max(4, "Use up to 4 images per frame").optional().default([]),
   is_active: z.coerce.boolean().default(true)
 });
 

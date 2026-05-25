@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/cart-store";
-import { formatCurrency, imageFallback } from "@/lib/utils";
+import { formatCurrency, framePrimaryImage } from "@/lib/utils";
 
 export function CartView() {
   const { items, removeItem, updateQty, subtotal } = useCartStore();
@@ -39,7 +39,7 @@ export function CartView() {
             <div key={item.id} className="grid gap-4 p-4 sm:grid-cols-[110px_1fr_auto]">
               <div className="relative aspect-square overflow-hidden rounded-md bg-optical-fog">
                 <Image
-                  src={item.image_url || imageFallback(item.frame_code)}
+                  src={framePrimaryImage(item)}
                   alt={item.name}
                   fill
                   sizes="110px"

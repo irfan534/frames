@@ -6,6 +6,8 @@ import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase
 import { buildProductSearchFilter, matchesProductSearch } from "@/lib/product-search";
 
 const frameColumns =
+  "id,frame_code,name,brand,category,description,price,quantity,image_url,image_urls,is_active,created_at,updated_at";
+const legacyFrameColumns =
   "id,frame_code,name,brand,category,description,price,quantity,image_url,is_active,created_at,updated_at";
 
 export type ProductQuery = {
@@ -44,23 +46,30 @@ export async function getProducts(query: ProductQuery = {}) {
 
   const from = (page - 1) * limit;
   const to = from + limit - 1;
-  let request = supabase
-    .from("frames")
-    .select(frameColumns, { count: "exact" })
-    .eq("is_active", true);
+  const buildRequest = (columns: string) => {
+    let request = supabase
+      .from("frames")
+      .select(columns, { count: "exact" })
+      .eq("is_active", true);
 
-  if (query.category) request = request.eq("category", query.category);
-  if (query.brand) request = request.eq("brand", query.brand);
-  if (query.min) request = request.gte("price", query.min);
-  if (query.max) request = request.lte("price", query.max);
-  if (query.search) request = request.or(buildProductSearchFilter(query.search));
+    if (query.category) request = request.eq("category", query.category);
+    if (query.brand) request = request.eq("brand", query.brand);
+    if (query.min) request = request.gte("price", query.min);
+    if (query.max) request = request.lte("price", query.max);
+    if (query.search) request = request.or(buildProductSearchFilter(query.search));
 
-  if (query.sort === "price-asc") request = request.order("price", { ascending: true });
-  else if (query.sort === "price-desc") request = request.order("price", { ascending: false });
-  else if (query.sort === "new") request = request.order("created_at", { ascending: false });
-  else request = request.order("quantity", { ascending: false });
+    if (query.sort === "price-asc") request = request.order("price", { ascending: true });
+    else if (query.sort === "price-desc") request = request.order("price", { ascending: false });
+    else if (query.sort === "new") request = request.order("created_at", { ascending: false });
+    else request = request.order("quantity", { ascending: false });
 
-  const { data, count, error } = await request.range(from, to);
+    return request;
+  };
+
+  let { data, count, error } = await buildRequest(frameColumns).range(from, to);
+  if (isMissingImageUrlsColumn(error)) {
+    ({ data, count, error } = await buildRequest(legacyFrameColumns).range(from, to));
+  }
   if (error) {
     logDataWarning("products", error);
     return { products: [], count: 0, page, pageCount: 1, unavailable: true };
@@ -68,7 +77,7 @@ export async function getProducts(query: ProductQuery = {}) {
 
   const total = count || 0;
   return {
-    products: (data || []) as Frame[],
+    products: (data || []) as unknown as Frame[],
     count: total,
     page,
     pageCount: Math.max(Math.ceil(total / limit), 1),
@@ -84,12 +93,25 @@ export async function getProduct(id: string) {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return null;
 
-  const { data, error } = await supabase
+  const productResult = await supabase
     .from("frames")
     .select(frameColumns)
     .eq("id", id)
     .eq("is_active", true)
     .maybeSingle();
+  let data: unknown = productResult.data;
+  let error: { message?: string } | null = productResult.error;
+
+  if (isMissingImageUrlsColumn(error)) {
+    const legacyProductResult = await supabase
+      .from("frames")
+      .select(legacyFrameColumns)
+      .eq("id", id)
+      .eq("is_active", true)
+      .maybeSingle();
+    data = legacyProductResult.data;
+    error = legacyProductResult.error;
+  }
 
   if (error) {
     logDataWarning("product", error);
@@ -107,10 +129,21 @@ export async function getAdminFrames() {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return [];
 
-  const { data, error } = await supabase
+  const framesResult = await supabase
     .from("frames")
     .select(frameColumns)
     .order("created_at", { ascending: false });
+  let data: unknown = framesResult.data;
+  let error: { message?: string } | null = framesResult.error;
+
+  if (isMissingImageUrlsColumn(error)) {
+    const legacyFramesResult = await supabase
+      .from("frames")
+      .select(legacyFrameColumns)
+      .order("created_at", { ascending: false });
+    data = legacyFramesResult.data;
+    error = legacyFramesResult.error;
+  }
 
   if (error) {
     logDataWarning("admin frames", error);
@@ -185,6 +218,10 @@ function sortSampleRows(rows: Frame[], sort?: string) {
   if (sort === "price-desc") return rows.sort((a, b) => Number(b.price) - Number(a.price));
   if (sort === "new") return rows.sort((a, b) => b.created_at.localeCompare(a.created_at));
   return rows.sort((a, b) => b.quantity - a.quantity);
+}
+
+function isMissingImageUrlsColumn(error: { message?: string } | null) {
+  return Boolean(error?.message?.includes("image_urls"));
 }
 
 function logDataWarning(resource: string, error: { message?: string }) {

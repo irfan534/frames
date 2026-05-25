@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { checkoutSchema } from "@/lib/validations";
 import { useCartStore } from "@/lib/cart-store";
-import { formatCurrency, getShopConfig, imageFallback } from "@/lib/utils";
+import { formatCurrency, framePrimaryImage, getShopConfig } from "@/lib/utils";
 
 type CheckoutFields = Omit<z.infer<typeof checkoutSchema>, "items">;
 
@@ -184,7 +184,7 @@ export function CheckoutForm() {
             <div key={item.id} className="grid grid-cols-[72px_1fr_auto] gap-3">
               <div className="relative aspect-square overflow-hidden rounded-md bg-optical-fog">
                 <Image
-                  src={item.image_url || imageFallback(item.frame_code)}
+                  src={framePrimaryImage(item)}
                   alt={item.name}
                   fill
                   sizes="72px"

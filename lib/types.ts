@@ -8,6 +8,7 @@ export type Frame = {
   price: number;
   quantity: number;
   image_url: string | null;
+  image_urls?: string[] | null;
   is_active: boolean;
   created_at: string;
   updated_at?: string | null;

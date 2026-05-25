@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProductGallery } from "@/components/public/product-gallery";
 import { ProductCard } from "@/components/public/product-card";
 import { QuantityAdd } from "@/components/public/quantity-add";
 import { StoreShell } from "@/components/public/store-shell";
 import { getProduct, getProducts } from "@/lib/data";
-import { formatCurrency, imageFallback, stockLabel } from "@/lib/utils";
+import { formatCurrency, frameGalleryImages, stockLabel } from "@/lib/utils";
 
 type Params = Promise<{ id: string }>;
 
@@ -30,37 +30,13 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
   if (!product) notFound();
 
   const related = await getProducts({ category: product.category || undefined, limit: 4 });
-  const image = product.image_url || imageFallback(product.frame_code);
+  const images = frameGalleryImages(product);
 
   return (
     <StoreShell>
       <main className="container-page py-10">
         <section className="grid gap-10 lg:grid-cols-[1fr_470px]">
-          <div>
-            <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-optical-fog">
-              <Image
-                src={image}
-                alt={product.name}
-                fill
-                priority
-                sizes="(min-width: 1024px) 640px, 100vw"
-                className="object-cover"
-              />
-            </div>
-            <div className="mt-3 grid grid-cols-4 gap-3">
-              {[0, 1, 2, 3].map((thumb) => (
-                <div key={thumb} className="relative aspect-[4/3] overflow-hidden rounded-md border border-border bg-optical-fog">
-                  <Image
-                    src={image}
-                    alt={`${product.name} thumbnail ${thumb + 1}`}
-                    fill
-                    sizes="150px"
-                    className="object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+          <ProductGallery images={images} productName={product.name} />
 
           <div className="rounded-lg border border-border bg-white p-6 shadow-sm">
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-primary">

@@ -44,6 +44,30 @@ export function imageFallback(seed: string) {
   return images[index % images.length];
 }
 
+export function frameGalleryImages(frame: {
+  frame_code: string;
+  image_url?: string | null;
+  image_urls?: string[] | null;
+}) {
+  const urls = [
+    ...(Array.isArray(frame.image_urls) ? frame.image_urls : []),
+    frame.image_url
+  ].filter((url): url is string => Boolean(url));
+  const uniqueUrls = Array.from(new Set(urls));
+
+  return uniqueUrls.length > 0
+    ? uniqueUrls.slice(0, 4)
+    : [imageFallback(frame.frame_code)];
+}
+
+export function framePrimaryImage(frame: {
+  frame_code: string;
+  image_url?: string | null;
+  image_urls?: string[] | null;
+}) {
+  return frameGalleryImages(frame)[0];
+}
+
 export function stockLabel(quantity: number) {
   if (quantity <= 0) return "Out of Stock";
   if (quantity <= 5) return "Low Stock";

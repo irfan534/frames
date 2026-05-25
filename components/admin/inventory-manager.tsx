@@ -15,7 +15,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { StockBadge } from "@/components/admin/status-badges";
 import type { Frame } from "@/lib/types";
 import { categories } from "@/lib/constants";
-import { formatCurrency, imageFallback } from "@/lib/utils";
+import { formatCurrency, framePrimaryImage } from "@/lib/utils";
+
+const maxFrameImages = 4;
 
 export function InventoryManager({ frames }: { frames: Frame[] }) {
   const router = useRouter();
@@ -102,7 +104,7 @@ export function InventoryManager({ frames }: { frames: Frame[] }) {
                   <div className="flex items-center gap-3">
                     <div className="relative h-14 w-14 overflow-hidden rounded-md bg-optical-fog">
                       <Image
-                        src={frame.image_url || imageFallback(frame.frame_code)}
+                        src={framePrimaryImage(frame)}
                         alt={frame.name}
                         fill
                         sizes="56px"
@@ -179,37 +181,72 @@ function FrameDialog({
 }) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [imageUrl, setImageUrl] = useState(frame?.image_url || "");
+  const initialCategory = frame?.category || "Eyeglasses";
+  const hasCustomCategory = Boolean(frame?.category && !categories.includes(frame.category));
+  const [category, setCategory] = useState(hasCustomCategory ? "Other" : initialCategory);
+  const [customCategory, setCustomCategory] = useState(hasCustomCategory ? initialCategory : "");
+  const [imageUrls, setImageUrls] = useState(() => {
+    const existingUrls = frame?.image_urls?.length
+      ? frame.image_urls
+      : frame?.image_url
+        ? [frame.image_url]
+        : [];
+
+    return [
+      ...existingUrls.slice(0, maxFrameImages),
+      ...Array(Math.max(maxFrameImages - existingUrls.length, 0)).fill("")
+    ].slice(0, maxFrameImages);
+  });
+
+  function updateImageUrl(index: number, value: string) {
+    setImageUrls((urls) => urls.map((url, currentIndex) => (
+      currentIndex === index ? value : url
+    )));
+  }
 
   async function save(formData: FormData) {
     setLoading(true);
-    const file = formData.get("image_file");
-    let finalImageUrl = imageUrl;
+    const imageFiles = imageUrls.map((_, index) => {
+      const file = formData.get(`image_file_${index + 1}`);
+      return file instanceof File && file.size > 0 ? file : null;
+    });
 
     try {
-      if (file instanceof File && file.size > 0) {
+      const hasFiles = imageFiles.some(Boolean);
+      if (hasFiles) {
         setUploading(true);
-        const uploadData = new FormData();
-        uploadData.set("file", file);
-        const upload = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: uploadData
-        });
-        const uploadResult = await upload.json();
-        setUploading(false);
-        if (!upload.ok) throw new Error(uploadResult.error || "Image upload failed");
-        finalImageUrl = uploadResult.url;
       }
+
+      const finalImageUrls = [];
+      for (const [index, url] of imageUrls.entries()) {
+        const file = imageFiles[index];
+        if (file) {
+          const uploadData = new FormData();
+          uploadData.set("file", file);
+          const upload = await fetch("/api/admin/upload", {
+            method: "POST",
+            body: uploadData
+          });
+          const uploadResult = await upload.json();
+          if (!upload.ok) throw new Error(uploadResult.error || "Image upload failed");
+          finalImageUrls.push(uploadResult.url);
+        } else if (url.trim()) {
+          finalImageUrls.push(url.trim());
+        }
+      }
+
+      const uniqueImageUrls = Array.from(new Set(finalImageUrls)).slice(0, maxFrameImages);
 
       const payload = {
         frame_code: String(formData.get("frame_code") || ""),
         name: String(formData.get("name") || ""),
         brand: String(formData.get("brand") || ""),
-        category: String(formData.get("category") || ""),
+        category: category === "Other" ? customCategory.trim() : category,
         description: String(formData.get("description") || ""),
         price: Number(formData.get("price") || 0),
         quantity: Number(formData.get("quantity") || 0),
-        image_url: finalImageUrl || "",
+        image_url: uniqueImageUrls[0] || "",
+        image_urls: uniqueImageUrls,
         is_active: formData.get("is_active") === "on"
       };
 
@@ -244,10 +281,10 @@ function FrameDialog({
           <Field name="frame_code" label="Frame Code" defaultValue={frame?.frame_code} />
           <Field name="name" label="Name" defaultValue={frame?.name} />
           <Field name="brand" label="Brand" defaultValue={frame?.brand || ""} />
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
-            <Select name="category" defaultValue={frame?.category || "Eyeglasses"}>
-              <SelectTrigger className="mt-2">
+            <Select name="category_choice" value={category} onValueChange={setCategory}>
+              <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -256,26 +293,43 @@ function FrameDialog({
                     {category}
                   </SelectItem>
                 ))}
+                <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
+            {category === "Other" ? (
+              <Input
+                id="custom_category"
+                value={customCategory}
+                onChange={(event) => setCustomCategory(event.target.value)}
+                placeholder="Enter category"
+              />
+            ) : null}
           </div>
           <Field name="price" label="Price" type="number" defaultValue={frame?.price} />
           <Field name="quantity" label="Quantity" type="number" defaultValue={frame?.quantity} />
-          <div className="md:col-span-2">
-            <Label htmlFor="image_url">Image URL</Label>
-            <Input
-              id="image_url"
-              name="image_url"
-              className="mt-2"
-              value={imageUrl}
-              onChange={(event) => setImageUrl(event.target.value)}
-            />
-          </div>
-          <div className="md:col-span-2">
-            <Label htmlFor="image_file">Upload Image</Label>
-            <div className="mt-2 flex items-center gap-3 rounded-md border border-dashed border-border bg-optical-fog p-3">
-              <Upload className="h-5 w-5 text-optical-muted" />
-              <Input id="image_file" name="image_file" type="file" accept="image/jpeg,image/jpg,image/png,image/webp" />
+          <div className="space-y-2 md:col-span-2">
+            <Label>Image URLs</Label>
+            <div className="grid gap-3">
+              {imageUrls.map((url, index) => (
+                <div key={index} className="grid gap-2 rounded-md border border-border bg-optical-fog p-3 sm:grid-cols-[1fr_220px]">
+                  <Input
+                    name={`image_url_${index + 1}`}
+                    value={url}
+                    onChange={(event) => updateImageUrl(index, event.target.value)}
+                    placeholder={index === 0 ? "Primary image URL" : `Image URL ${index + 1}`}
+                  />
+                  <div className="flex items-center gap-2">
+                    <Upload className="h-4 w-4 shrink-0 text-optical-muted" />
+                    <Input
+                      id={`image_file_${index + 1}`}
+                      name={`image_file_${index + 1}`}
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      aria-label={`Upload image ${index + 1}`}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
           <div className="md:col-span-2">

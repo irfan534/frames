@@ -18,10 +18,19 @@ create table if not exists public.frames (
   price numeric not null check (price >= 0),
   quantity integer not null default 0 check (quantity >= 0),
   image_url text,
+  image_urls text[] not null default '{}',
   is_active boolean default true,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+alter table public.frames
+add column if not exists image_urls text[] not null default '{}';
+
+update public.frames
+set image_urls = array[image_url]
+where image_url is not null
+  and coalesce(array_length(image_urls, 1), 0) = 0;
 
 create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
