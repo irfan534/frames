@@ -4,6 +4,7 @@ import { Fragment, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,7 +25,12 @@ export function OrdersManager({ orders }: { orders: OrderWithItems[] }) {
     () =>
       status === "all"
         ? orders
-        : orders.filter((order) => order.payment_status === status),
+        : orders.filter((order) =>
+            status === "pending"
+              ? order.payment_status === "pending" ||
+                order.payment_status === "payment_claimed"
+              : order.payment_status === status
+          ),
     [orders, status]
   );
 
@@ -85,8 +91,13 @@ export function OrdersManager({ orders }: { orders: OrderWithItems[] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((order) => (
-              <Fragment key={order.id}>
+            {rows.map((order) => {
+              const canConfirmPayment =
+                order.payment_status === "pending" ||
+                order.payment_status === "payment_claimed";
+
+              return (
+                <Fragment key={order.id}>
                 <TableRow key={order.id}>
                   <TableCell>
                     <button
@@ -99,7 +110,12 @@ export function OrdersManager({ orders }: { orders: OrderWithItems[] }) {
                         <ChevronDown className="h-4 w-4" />
                       )}
                       <span>
-                        <span className="block font-semibold">{order.customer_name}</span>
+                        <span className="flex flex-wrap items-center gap-2">
+                          <span className="font-semibold">{order.customer_name}</span>
+                          {order.payment_status === "payment_claimed" ? (
+                            <Badge variant="warning">Payment Claimed</Badge>
+                          ) : null}
+                        </span>
                         <span className="text-xs text-optical-muted">{order.phone}</span>
                       </span>
                     </button>
@@ -112,7 +128,7 @@ export function OrdersManager({ orders }: { orders: OrderWithItems[] }) {
                       <Input
                         aria-label="Final price"
                         className="h-9 w-32"
-                        disabled={order.payment_status !== "pending" || loadingId === order.id}
+                        disabled={!canConfirmPayment || loadingId === order.id}
                         inputMode="decimal"
                         min="1"
                         step="1"
@@ -127,7 +143,7 @@ export function OrdersManager({ orders }: { orders: OrderWithItems[] }) {
                       />
                       <Button
                         size="sm"
-                        disabled={order.payment_status !== "pending" || loadingId === order.id}
+                        disabled={!canConfirmPayment || loadingId === order.id}
                         onClick={() => action(order, "confirm")}
                       >
                         Confirm Payment
@@ -175,8 +191,9 @@ export function OrdersManager({ orders }: { orders: OrderWithItems[] }) {
                     </TableCell>
                   </TableRow>
                 ) : null}
-              </Fragment>
-            ))}
+                </Fragment>
+              );
+            })}
           </TableBody>
         </Table>
       </div>

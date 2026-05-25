@@ -26,6 +26,7 @@ export default async function ProductsPage({
     page,
     category: getValue(params.category),
     brand: getValue(params.brand),
+    color: getValue(params.color),
     search: getValue(params.search),
     sort: getValue(params.sort),
     min: getValue(params.min) ? Number(getValue(params.min)) : undefined,

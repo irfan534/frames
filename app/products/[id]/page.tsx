@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,7 +8,7 @@ import { ProductCard } from "@/components/public/product-card";
 import { QuantityAdd } from "@/components/public/quantity-add";
 import { StoreShell } from "@/components/public/store-shell";
 import { getProduct, getProducts } from "@/lib/data";
-import { formatCurrency, frameGalleryImages, stockLabel } from "@/lib/utils";
+import { formatCurrency, frameColors, frameGalleryImages, stockLabel } from "@/lib/utils";
 
 type Params = Promise<{ id: string }>;
 
@@ -31,6 +32,7 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
 
   const related = await getProducts({ category: product.category || undefined, limit: 4 });
   const images = frameGalleryImages(product);
+  const colors = frameColors(product);
 
   return (
     <StoreShell>
@@ -63,18 +65,22 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
               </span>
             </div>
 
-            <div className="mt-7">
-              <p className="text-sm font-semibold">Color</p>
-              <div className="mt-2 flex gap-2">
-                {["#111111", "#0D6E6E", "#B08968", "#F5A623"].map((color) => (
-                  <span
-                    key={color}
-                    className="h-8 w-8 rounded-full border-2 border-white shadow ring-1 ring-black/10"
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
+            {colors.length ? (
+              <div className="mt-7">
+                <p className="text-sm font-semibold">Color</p>
+                <div className="mt-2 flex gap-2">
+                  {colors.map((color) => (
+                    <Link
+                      key={color}
+                      href={`/products?color=${encodeURIComponent(color)}`}
+                      className="h-8 w-8 rounded-full border-2 border-white shadow ring-1 ring-black/10"
+                      style={{ backgroundColor: color }}
+                      aria-label={`Show ${color} frames`}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : null}
 
             <div className="mt-7">
               <QuantityAdd frame={product} />

@@ -18,6 +18,7 @@ import { categories } from "@/lib/constants";
 import { formatCurrency, framePrimaryImage } from "@/lib/utils";
 
 const maxFrameImages = 4;
+const maxFrameColors = 6;
 
 export function InventoryManager({ frames }: { frames: Frame[] }) {
   const router = useRouter();
@@ -185,6 +186,7 @@ function FrameDialog({
   const hasCustomCategory = Boolean(frame?.category && !categories.includes(frame.category));
   const [category, setCategory] = useState(hasCustomCategory ? "Other" : initialCategory);
   const [customCategory, setCustomCategory] = useState(hasCustomCategory ? initialCategory : "");
+  const [colors, setColors] = useState(() => (frame?.colors || []).slice(0, maxFrameColors));
   const [imageUrls, setImageUrls] = useState(() => {
     const existingUrls = frame?.image_urls?.length
       ? frame.image_urls
@@ -202,6 +204,24 @@ function FrameDialog({
     setImageUrls((urls) => urls.map((url, currentIndex) => (
       currentIndex === index ? value : url
     )));
+  }
+
+  function addColor() {
+    setColors((current) =>
+      current.length >= maxFrameColors ? current : [...current, "#000000"]
+    );
+  }
+
+  function updateColor(index: number, value: string) {
+    setColors((current) =>
+      current.map((color, currentIndex) => (
+        currentIndex === index ? value : color
+      ))
+    );
+  }
+
+  function removeColor(index: number) {
+    setColors((current) => current.filter((_, currentIndex) => currentIndex !== index));
   }
 
   async function save(formData: FormData) {
@@ -236,6 +256,7 @@ function FrameDialog({
       }
 
       const uniqueImageUrls = Array.from(new Set(finalImageUrls)).slice(0, maxFrameImages);
+      const uniqueColors = Array.from(new Set(colors)).slice(0, maxFrameColors);
 
       const payload = {
         frame_code: String(formData.get("frame_code") || ""),
@@ -247,6 +268,7 @@ function FrameDialog({
         quantity: Number(formData.get("quantity") || 0),
         image_url: uniqueImageUrls[0] || "",
         image_urls: uniqueImageUrls,
+        colors: uniqueColors,
         is_active: formData.get("is_active") === "on"
       };
 
@@ -307,6 +329,45 @@ function FrameDialog({
           </div>
           <Field name="price" label="Price" type="number" defaultValue={frame?.price} />
           <Field name="quantity" label="Quantity" type="number" defaultValue={frame?.quantity} />
+          <div className="space-y-2 md:col-span-2">
+            <div className="flex items-center justify-between gap-3">
+              <Label>Colors</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addColor}
+                disabled={colors.length >= maxFrameColors}
+              >
+                <Plus className="h-4 w-4" />
+                Add Color
+              </Button>
+            </div>
+            {colors.length ? (
+              <div className="flex flex-wrap gap-3">
+                {colors.map((color, index) => (
+                  <div key={`${color}-${index}`} className="flex items-center gap-2 rounded-md border border-border bg-optical-fog p-2">
+                    <Input
+                      aria-label={`Color ${index + 1}`}
+                      className="h-9 w-12 cursor-pointer p-1"
+                      type="color"
+                      value={color}
+                      onChange={(event) => updateColor(index, event.target.value)}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => removeColor(index)}
+                      aria-label={`Remove color ${index + 1}`}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
           <div className="space-y-2 md:col-span-2">
             <Label>Image URLs</Label>
             <div className="grid gap-3">

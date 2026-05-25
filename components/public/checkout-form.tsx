@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { MessageCircle } from "lucide-react";
+import { QrCode } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -68,9 +68,8 @@ export function CheckoutForm() {
       }
 
       clearCart();
-      toast.success("Order created. Opening WhatsApp.");
-      window.open(result.whatsappUrl, "_blank", "noopener,noreferrer");
-      router.push(`/checkout?order=${result.orderId}`);
+      toast.success("Order created. Complete your UPI payment.");
+      router.push(`/checkout/success?orderId=${encodeURIComponent(result.orderId)}`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Checkout failed");
     } finally {
@@ -162,8 +161,8 @@ export function CheckoutForm() {
               <div>
                 <h2 className="font-display text-2xl font-bold">QR Payment</h2>
                 <p className="mt-2 text-sm leading-6 text-optical-muted">
-                  Scan to pay with Google Pay or PhonePe. Send the payment
-                  screenshot on WhatsApp after placing the order.
+                  Scan to pay with Google Pay or PhonePe. After placing the
+                  order, confirm payment from the next screen.
                 </p>
                 <p className="mt-4 text-2xl font-bold">{formatCurrency(total)}</p>
               </div>
@@ -171,8 +170,8 @@ export function CheckoutForm() {
           </div>
 
           <Button disabled={loading} className="md:col-span-2">
-            <MessageCircle className="h-4 w-4" />
-            {loading ? "Creating order..." : "Place Order & Contact on WhatsApp"}
+            <QrCode className="h-4 w-4" />
+            {loading ? "Creating order..." : "Place Order & Pay by UPI"}
           </Button>
         </form>
       </section>

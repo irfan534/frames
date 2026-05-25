@@ -9,6 +9,7 @@ export type Frame = {
   quantity: number;
   image_url: string | null;
   image_urls?: string[] | null;
+  colors?: string[] | null;
   is_active: boolean;
   created_at: string;
   updated_at?: string | null;
@@ -25,7 +26,7 @@ export type Order = {
   address: string;
   notes: string | null;
   total_amount: number;
-  payment_status: "pending" | "paid" | "cancelled";
+  payment_status: "pending" | "payment_claimed" | "paid" | "cancelled";
   order_status: "pending" | "confirmed" | "completed" | "cancelled";
   created_at: string;
 };

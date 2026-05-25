@@ -2,7 +2,6 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { checkoutSchema } from "@/lib/validations";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { generateWhatsAppMessage, generateWhatsAppUrl } from "@/lib/whatsapp";
 import { getShopConfig } from "@/lib/utils";
 import { buildOrderItems } from "@/lib/orders";
 import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
@@ -115,29 +114,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: itemsError.message }, { status: 500 });
   }
 
-  const message = generateWhatsAppMessage({
-    name: parsed.data.customer_name,
-    phone: parsed.data.phone,
-    fulfillmentMethod: parsed.data.fulfillment_method,
-    address,
-    notes: parsed.data.notes,
-    total,
-    items: orderItems.map((item) => ({
-      id: "",
-      order_id: order.id,
-      frame_id: item.frame.id,
-      qty: item.qty,
-      price: item.price,
-      frames: {
-        name: item.frame.name,
-        frame_code: item.frame.frame_code
-      }
-    }))
-  });
-
   return NextResponse.json({
     orderId: order.id,
-    total,
-    whatsappUrl: generateWhatsAppUrl(message)
+    total
   });
 }

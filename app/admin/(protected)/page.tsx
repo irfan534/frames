@@ -19,7 +19,11 @@ export default async function AdminDashboardPage() {
 
   const totalStock = frames.reduce((sum, frame) => sum + frame.quantity, 0);
   const lowStock = frames.filter((frame) => frame.quantity <= 5).length;
-  const pendingOrders = orders.filter((order) => order.payment_status === "pending").length;
+  const pendingOrders = orders.filter(
+    (order) =>
+      order.payment_status === "pending" ||
+      order.payment_status === "payment_claimed"
+  ).length;
   const revenue = sales.reduce((sum, sale) => sum + Number(sale.amount), 0);
 
   return (

@@ -4,12 +4,11 @@ import { Heart } from "lucide-react";
 import { AddToCartButton } from "@/components/public/add-to-cart-button";
 import { Badge } from "@/components/ui/badge";
 import type { Frame } from "@/lib/types";
-import { formatCurrency, framePrimaryImage } from "@/lib/utils";
-
-const swatches = ["#111111", "#0D6E6E", "#B08968"];
+import { formatCurrency, frameColors, framePrimaryImage } from "@/lib/utils";
 
 export function ProductCard({ frame }: { frame: Frame }) {
   const image = framePrimaryImage(frame);
+  const colors = frameColors(frame);
   const mrp = Math.round(Number(frame.price) * 1.22);
 
   return (
@@ -48,16 +47,22 @@ export function ProductCard({ frame }: { frame: Frame }) {
           </span>
         </div>
         <div className="mt-3 flex items-center justify-between gap-3">
-          <div className="flex gap-1.5">
-            {swatches.map((color) => (
-              <span
-                key={color}
-                className="h-4 w-4 rounded-full border border-black/10"
-                style={{ backgroundColor: color }}
-              />
-            ))}
+          {colors.length ? (
+            <div className="flex gap-1.5">
+              {colors.map((color) => (
+                <Link
+                  key={color}
+                  href={`/products?color=${encodeURIComponent(color)}`}
+                  className="h-4 w-4 rounded-full border border-black/10"
+                  style={{ backgroundColor: color }}
+                  aria-label={`Show ${color} frames`}
+                />
+              ))}
+            </div>
+          ) : null}
+          <div className="ml-auto">
+            <AddToCartButton frame={frame} label="Add" />
           </div>
-          <AddToCartButton frame={frame} label="Add" />
         </div>
       </div>
     </article>

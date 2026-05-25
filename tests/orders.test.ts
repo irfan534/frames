@@ -84,3 +84,19 @@ test("parseFinalOrderTotal rejects empty or non-positive values", () => {
     assert.equal(result.ok, false);
   }
 });
+
+test("buildOrderItems deduplicates frame ids and sums quantities within stock", () => {
+  const result = buildOrderItems(
+    [
+      { frameId: "frame-1", qty: 1 },
+      { frameId: "frame-1", qty: 1 }
+    ],
+    frames
+  );
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.equal(result.orderItems.length, 1);
+    assert.equal(result.orderItems[0].qty, 2);
+    assert.equal(result.total, 2998);
+  }
+});

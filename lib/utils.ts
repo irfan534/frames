@@ -68,6 +68,12 @@ export function framePrimaryImage(frame: {
   return frameGalleryImages(frame)[0];
 }
 
+export function frameColors(frame: { colors?: string[] | null }) {
+  return Array.isArray(frame.colors)
+    ? frame.colors.filter((color) => /^#[0-9a-fA-F]{6}$/.test(color))
+    : [];
+}
+
 export function stockLabel(quantity: number) {
   if (quantity <= 0) return "Out of Stock";
   if (quantity <= 5) return "Low Stock";

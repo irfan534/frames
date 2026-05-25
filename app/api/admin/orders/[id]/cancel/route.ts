@@ -1,12 +1,14 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
+import { checkOrigin } from "@/lib/csrf";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type Context = { params: Promise<{ id: string }> };
 
 export async function POST(_request: Request, context: Context) {
   await requireAdmin();
+  if (!(await checkOrigin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id } = await context.params;
   const supabase = createSupabaseAdminClient();
 

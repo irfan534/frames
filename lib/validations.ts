@@ -67,6 +67,7 @@ export const frameSchema = z.object({
   quantity: z.coerce.number().int().min(0, "Quantity cannot be negative"),
   image_url: z.string().trim().url().optional().or(z.literal("")),
   image_urls: z.array(z.string().trim().url()).max(4, "Use up to 4 images per frame").optional().default([]),
+  colors: z.array(z.string().trim().regex(/^#[0-9a-fA-F]{6}$/, "Enter a valid color")).max(6, "Use up to 6 colors per frame").optional().default([]),
   is_active: z.coerce.boolean().default(true)
 });
 

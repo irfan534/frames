@@ -1,11 +1,13 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
+import { checkOrigin } from "@/lib/csrf";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { frameSchema } from "@/lib/validations";
 
 export async function POST(request: Request) {
   await requireAdmin();
+  if (!(await checkOrigin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const payload = await request.json().catch(() => null);
   const parsed = frameSchema.safeParse(payload);
 
@@ -36,13 +38,16 @@ export async function POST(request: Request) {
     category: parsed.data.category || null,
     description: parsed.data.description || null,
     image_url: imageUrls[0] || null,
-    image_urls: imageUrls
+    image_urls: imageUrls,
+    colors: parsed.data.colors
   };
 
   let { error } = await supabase.from("frames").insert(row);
-  if (isMissingImageUrlsColumn(error) && imageUrls.length <= 1) {
+  if (isMissingOptionalFrameColumn(error) && imageUrls.length <= 1 && row.colors.length === 0) {
     const legacyRow = withoutImageUrls(row);
-    ({ error } = await supabase.from("frames").insert(legacyRow));
+    const { colors, ...rowWithoutOptionalColumns } = legacyRow;
+    void colors;
+    ({ error } = await supabase.from("frames").insert(rowWithoutOptionalColumns));
   }
 
   if (error) {
@@ -55,11 +60,18 @@ export async function POST(request: Request) {
   return NextResponse.json({ ok: true });
 }
 
-function isMissingImageUrlsColumn(error: { message?: string } | null) {
-  return Boolean(error?.message?.includes("image_urls"));
+function isMissingOptionalFrameColumn(error: { message?: string } | null) {
+  return Boolean(
+    error?.message?.includes("image_urls") ||
+    error?.message?.includes("colors")
+  );
 }
 
 function formatFrameSaveError(message: string) {
+  if (message.includes("colors")) {
+    return "Run the updated Supabase schema before saving frame colors.";
+  }
+
   if (message.includes("image_urls")) {
     return "Run the updated Supabase schema before saving multiple frame images.";
   }

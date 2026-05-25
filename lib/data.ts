@@ -6,7 +6,7 @@ import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase
 import { buildProductSearchFilter, matchesProductSearch } from "@/lib/product-search";
 
 const frameColumns =
-  "id,frame_code,name,brand,category,description,price,quantity,image_url,image_urls,is_active,created_at,updated_at";
+  "id,frame_code,name,brand,category,description,price,quantity,image_url,image_urls,colors,is_active,created_at,updated_at";
 const legacyFrameColumns =
   "id,frame_code,name,brand,category,description,price,quantity,image_url,is_active,created_at,updated_at";
 
@@ -14,6 +14,7 @@ export type ProductQuery = {
   page?: number;
   category?: string;
   brand?: string;
+  color?: string;
   min?: number;
   max?: number;
   sort?: string;
@@ -54,6 +55,7 @@ export async function getProducts(query: ProductQuery = {}) {
 
     if (query.category) request = request.eq("category", query.category);
     if (query.brand) request = request.eq("brand", query.brand);
+    if (query.color) request = request.contains("colors", [query.color]);
     if (query.min) request = request.gte("price", query.min);
     if (query.max) request = request.lte("price", query.max);
     if (query.search) request = request.or(buildProductSearchFilter(query.search));
@@ -67,7 +69,7 @@ export async function getProducts(query: ProductQuery = {}) {
   };
 
   let { data, count, error } = await buildRequest(frameColumns).range(from, to);
-  if (isMissingImageUrlsColumn(error)) {
+  if (isMissingOptionalFrameColumn(error)) {
     ({ data, count, error } = await buildRequest(legacyFrameColumns).range(from, to));
   }
   if (error) {
@@ -102,7 +104,7 @@ export async function getProduct(id: string) {
   let data: unknown = productResult.data;
   let error: { message?: string } | null = productResult.error;
 
-  if (isMissingImageUrlsColumn(error)) {
+  if (isMissingOptionalFrameColumn(error)) {
     const legacyProductResult = await supabase
       .from("frames")
       .select(legacyFrameColumns)
@@ -136,7 +138,7 @@ export async function getAdminFrames() {
   let data: unknown = framesResult.data;
   let error: { message?: string } | null = framesResult.error;
 
-  if (isMissingImageUrlsColumn(error)) {
+  if (isMissingOptionalFrameColumn(error)) {
     const legacyFramesResult = await supabase
       .from("frames")
       .select(legacyFrameColumns)
@@ -204,6 +206,7 @@ function filterSampleRows(rows: Frame[], query: ProductQuery) {
   return rows.filter((frame) => {
     if (query.category && frame.category !== query.category) return false;
     if (query.brand && frame.brand !== query.brand) return false;
+    if (query.color && !frame.colors?.includes(query.color)) return false;
     if (query.min && Number(frame.price) < query.min) return false;
     if (query.max && Number(frame.price) > query.max) return false;
     if (query.search && !matchesProductSearch(frame, query.search)) {
@@ -220,8 +223,11 @@ function sortSampleRows(rows: Frame[], sort?: string) {
   return rows.sort((a, b) => b.quantity - a.quantity);
 }
 
-function isMissingImageUrlsColumn(error: { message?: string } | null) {
-  return Boolean(error?.message?.includes("image_urls"));
+function isMissingOptionalFrameColumn(error: { message?: string } | null) {
+  return Boolean(
+    error?.message?.includes("image_urls") ||
+    error?.message?.includes("colors")
+  );
 }
 
 function logDataWarning(resource: string, error: { message?: string }) {

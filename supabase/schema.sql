@@ -19,6 +19,7 @@ create table if not exists public.frames (
   quantity integer not null default 0 check (quantity >= 0),
   image_url text,
   image_urls text[] not null default '{}',
+  colors text[] not null default '{}',
   is_active boolean default true,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -27,11 +28,17 @@ create table if not exists public.frames (
 alter table public.frames
 add column if not exists image_urls text[] not null default '{}';
 
+alter table public.frames
+add column if not exists colors text[] not null default '{}';
+
 update public.frames
 set image_urls = array[image_url]
 where image_url is not null
   and coalesce(array_length(image_urls, 1), 0) = 0;
 
+/* orders — no anon or authenticated INSERT policy is intentional.
+   All order creation goes through the service_role key in /api/orders.
+   Do not add an anon INSERT policy without also adding price/status validation. */
 create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
   customer_name text not null,
@@ -39,7 +46,7 @@ create table if not exists public.orders (
   address text not null,
   notes text,
   total_amount numeric not null check (total_amount >= 0),
-  payment_status text default 'pending' check (payment_status in ('pending', 'paid', 'cancelled')),
+  payment_status text default 'pending' check (payment_status in ('pending', 'payment_claimed', 'paid', 'cancelled')),
   order_status text default 'pending' check (order_status in ('pending', 'confirmed', 'completed', 'cancelled')),
   created_at timestamptz default now()
 );
@@ -94,6 +101,20 @@ as $$
     where user_id = auth.uid()
   );
 $$;
+
+create table if not exists public.contact_messages (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  email text not null,
+  message text not null,
+  created_at timestamptz default now()
+);
+
+alter table public.contact_messages enable row level security;
+
+create policy "Admins can read contact messages"
+on public.contact_messages for select
+to authenticated using (public.is_admin());
 
 alter table public.admin_users enable row level security;
 alter table public.frames enable row level security;
