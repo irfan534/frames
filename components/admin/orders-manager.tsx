@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { OrderBadge, PaymentBadge } from "@/components/admin/status-badges";
+import { parseFinalOrderTotal } from "@/lib/orders";
 import type { OrderWithItems } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 
@@ -16,6 +18,7 @@ export function OrdersManager({ orders }: { orders: OrderWithItems[] }) {
   const [status, setStatus] = useState("all");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [priceOverrides, setPriceOverrides] = useState<Record<string, string>>({});
 
   const rows = useMemo(
     () =>
@@ -25,10 +28,22 @@ export function OrdersManager({ orders }: { orders: OrderWithItems[] }) {
     [orders, status]
   );
 
-  async function action(orderId: string, type: "confirm" | "cancel") {
+  async function action(order: OrderWithItems, type: "confirm" | "cancel") {
+    const orderId = order.id;
     setLoadingId(orderId);
+    const totalAmount = priceOverrides[orderId] ?? String(order.total_amount);
+    const finalTotal = parseFinalOrderTotal(totalAmount);
+
+    if (type === "confirm" && !finalTotal.ok) {
+      setLoadingId(null);
+      toast.error(finalTotal.error);
+      return;
+    }
+
     const response = await fetch(`/api/admin/orders/${orderId}/${type}`, {
-      method: "POST"
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: type === "confirm" ? JSON.stringify({ totalAmount: finalTotal.ok ? finalTotal.total : null }) : undefined
     });
     const result = await response.json();
     setLoadingId(null);
@@ -93,11 +108,27 @@ export function OrdersManager({ orders }: { orders: OrderWithItems[] }) {
                   <TableCell><PaymentBadge status={order.payment_status} /></TableCell>
                   <TableCell><OrderBadge status={order.order_status} /></TableCell>
                   <TableCell>
-                    <div className="flex justify-end gap-2">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <Input
+                        aria-label="Final price"
+                        className="h-9 w-32"
+                        disabled={order.payment_status !== "pending" || loadingId === order.id}
+                        inputMode="decimal"
+                        min="1"
+                        step="1"
+                        type="number"
+                        value={priceOverrides[order.id] ?? String(order.total_amount)}
+                        onChange={(event) =>
+                          setPriceOverrides((current) => ({
+                            ...current,
+                            [order.id]: event.target.value
+                          }))
+                        }
+                      />
                       <Button
                         size="sm"
                         disabled={order.payment_status !== "pending" || loadingId === order.id}
-                        onClick={() => action(order.id, "confirm")}
+                        onClick={() => action(order, "confirm")}
                       >
                         Confirm Payment
                       </Button>
@@ -105,7 +136,7 @@ export function OrdersManager({ orders }: { orders: OrderWithItems[] }) {
                         size="sm"
                         variant="outline"
                         disabled={order.payment_status !== "pending" || loadingId === order.id}
-                        onClick={() => action(order.id, "cancel")}
+                        onClick={() => action(order, "cancel")}
                       >
                         Cancel
                       </Button>

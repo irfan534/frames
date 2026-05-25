@@ -138,7 +138,9 @@ to authenticated
 using (public.is_admin())
 with check (public.is_admin());
 
-create or replace function public.confirm_order_payment(target_order_id uuid)
+drop function if exists public.confirm_order_payment(uuid);
+
+create or replace function public.confirm_order_payment(target_order_id uuid, final_total_amount numeric)
 returns void
 language plpgsql
 security definer
@@ -148,9 +150,15 @@ declare
   target_order public.orders%rowtype;
   item record;
   current_stock integer;
+  order_subtotal numeric;
+  sale_amount numeric;
 begin
   if not public.is_admin() and coalesce(auth.role(), '') <> 'service_role' then
     raise exception 'Admin access required';
+  end if;
+
+  if final_total_amount is null or final_total_amount <= 0 then
+    raise exception 'Enter a valid final price.';
   end if;
 
   select *
@@ -170,6 +178,11 @@ begin
   if target_order.payment_status = 'cancelled' or target_order.order_status = 'cancelled' then
     raise exception 'Cancelled orders cannot be confirmed';
   end if;
+
+  select coalesce(sum(oi.price * oi.qty), 0)
+  into order_subtotal
+  from public.order_items oi
+  where oi.order_id = target_order_id;
 
   for item in
     select oi.frame_id, oi.qty, oi.price, f.name
@@ -194,6 +207,11 @@ begin
     from public.order_items oi
     where oi.order_id = target_order_id
   loop
+    sale_amount := case
+      when order_subtotal > 0 then final_total_amount * (item.price * item.qty) / order_subtotal
+      else 0
+    end;
+
     update public.frames
     set
       quantity = quantity - item.qty,
@@ -201,18 +219,19 @@ begin
     where id = item.frame_id;
 
     insert into public.sales (frame_id, qty, amount, payment_method)
-    values (item.frame_id, item.qty, item.price * item.qty, 'upi');
+    values (item.frame_id, item.qty, sale_amount, 'upi');
   end loop;
 
   update public.orders
   set payment_status = 'paid',
-      order_status = 'confirmed'
+      order_status = 'confirmed',
+      total_amount = final_total_amount
   where id = target_order_id;
 end;
 $$;
 
-revoke all on function public.confirm_order_payment(uuid) from public;
-grant execute on function public.confirm_order_payment(uuid) to authenticated, service_role;
+revoke all on function public.confirm_order_payment(uuid, numeric) from public;
+grant execute on function public.confirm_order_payment(uuid, numeric) to authenticated, service_role;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { buildOrderItems } from "../lib/orders";
+import { buildOrderItems, parseFinalOrderTotal } from "../lib/orders";
 import { test } from "./test-helpers";
 
 const frames = [
@@ -65,5 +65,22 @@ test("buildOrderItems rejects unavailable frames", () => {
   assert.equal(result.ok, false);
   if (!result.ok) {
     assert.equal(result.error, "One or more products are unavailable.");
+  }
+});
+
+test("parseFinalOrderTotal accepts positive numeric values", () => {
+  const result = parseFinalOrderTotal("2499");
+
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.equal(result.total, 2499);
+  }
+});
+
+test("parseFinalOrderTotal rejects empty or non-positive values", () => {
+  for (const value of ["", "   ", 0, -1, "not a price"]) {
+    const result = parseFinalOrderTotal(value);
+
+    assert.equal(result.ok, false);
   }
 });

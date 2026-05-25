@@ -28,6 +28,19 @@ export type BuildOrderItemsResult<TFrame extends CheckoutFrame> =
       error: string;
     };
 
+export function parseFinalOrderTotal(value: unknown):
+  | { ok: true; total: number }
+  | { ok: false; error: string } {
+  const total =
+    typeof value === "string" && value.trim() === "" ? NaN : Number(value);
+
+  if (!Number.isFinite(total) || total <= 0) {
+    return { ok: false, error: "Enter a valid final price." };
+  }
+
+  return { ok: true, total };
+}
+
 export function buildOrderItems<TFrame extends CheckoutFrame>(
   items: CheckoutLineItem[],
   frames: TFrame[]

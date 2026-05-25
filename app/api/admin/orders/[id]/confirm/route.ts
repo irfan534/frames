@@ -1,11 +1,12 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
+import { parseFinalOrderTotal } from "@/lib/orders";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type Context = { params: Promise<{ id: string }> };
 
-export async function POST(_request: Request, context: Context) {
+export async function POST(request: Request, context: Context) {
   await requireAdmin();
   const { id } = await context.params;
   const supabase = createSupabaseAdminClient();
@@ -17,7 +18,18 @@ export async function POST(_request: Request, context: Context) {
     );
   }
 
+  const payload = await request.json().catch(() => null);
+  const finalTotal = parseFinalOrderTotal(payload?.totalAmount);
+
+  if (!finalTotal.ok) {
+    return NextResponse.json(
+      { error: finalTotal.error },
+      { status: 400 }
+    );
+  }
+
   const { error } = await supabase.rpc("confirm_order_payment", {
+    final_total_amount: finalTotal.total,
     target_order_id: id
   });
 
