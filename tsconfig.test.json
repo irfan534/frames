@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "outDir": ".tmp-tests",
+    "rootDir": ".",
+    "types": ["node"]
+  },
+  "include": [
+    "lib/orders.ts",
+    "lib/product-search.ts",
+    "lib/rate-limit.ts",
+    "tests/test-helpers.ts",
+    "tests/run-tests.ts",
+    "tests/**/*.test.ts"
+  ]
+}

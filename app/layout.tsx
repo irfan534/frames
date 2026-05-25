@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Toaster } from "sonner";
 import "./globals.css";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
   title: {
     default: "Vision Thru Optics Velachery | Premium Frames & Lenses",
@@ -10,7 +12,7 @@ export const metadata: Metadata = {
   applicationName: "Vision Thru Optics Velachery",
   description:
     "A premium optical store for frames, sunglasses, contact lenses, and family eye care.",
-  metadataBase: new URL("https://vision-thru-optics-velachery.example"),
+  metadataBase: new URL(siteUrl),
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any", type: "image/x-icon" },

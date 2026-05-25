@@ -3,6 +3,7 @@ import type { Frame, OrderWithItems, Sale } from "@/lib/types";
 import { productPageSize } from "@/lib/constants";
 import { sampleFrames, sampleOrders, sampleSales } from "@/lib/sample-data";
 import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { buildProductSearchFilter, matchesProductSearch } from "@/lib/product-search";
 
 const frameColumns =
   "id,frame_code,name,brand,category,description,price,quantity,image_url,is_active,created_at,updated_at";
@@ -52,7 +53,7 @@ export async function getProducts(query: ProductQuery = {}) {
   if (query.brand) request = request.eq("brand", query.brand);
   if (query.min) request = request.gte("price", query.min);
   if (query.max) request = request.lte("price", query.max);
-  if (query.search) request = request.ilike("name", `%${query.search}%`);
+  if (query.search) request = request.or(buildProductSearchFilter(query.search));
 
   if (query.sort === "price-asc") request = request.order("price", { ascending: true });
   else if (query.sort === "price-desc") request = request.order("price", { ascending: false });
@@ -172,10 +173,7 @@ function filterSampleRows(rows: Frame[], query: ProductQuery) {
     if (query.brand && frame.brand !== query.brand) return false;
     if (query.min && Number(frame.price) < query.min) return false;
     if (query.max && Number(frame.price) > query.max) return false;
-    if (
-      query.search &&
-      !frame.name.toLowerCase().includes(query.search.toLowerCase())
-    ) {
+    if (query.search && !matchesProductSearch(frame, query.search)) {
       return false;
     }
     return true;

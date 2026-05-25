@@ -4,31 +4,30 @@ import { checkoutSchema } from "@/lib/validations";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { generateWhatsAppMessage, generateWhatsAppUrl } from "@/lib/whatsapp";
 import { getShopConfig } from "@/lib/utils";
+import { buildOrderItems } from "@/lib/orders";
+import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
 
 const RATE_LIMIT_WINDOW = 10 * 60 * 1000;
 const RATE_LIMIT_MAX = 3;
-const orderRateLimit = new Map<string, { count: number; resetAt: number }>();
+const orderRateLimit = createRateLimiter({
+  windowMs: RATE_LIMIT_WINDOW,
+  max: RATE_LIMIT_MAX
+});
 
 export async function POST(request: Request) {
   const headersList = await headers();
-  const forwarded = headersList.get("x-forwarded-for");
-  const ip = forwarded ? forwarded.split(",")[0].trim() : "unknown";
-  const now = Date.now();
-  const record = orderRateLimit.get(ip);
+  const rateLimit = orderRateLimit.check(getClientIp(headersList));
 
-  if (record && now < record.resetAt) {
-    if (record.count >= RATE_LIMIT_MAX) {
-      return NextResponse.json(
-        { error: "Too many orders. Please try again later." },
-        { status: 429 }
-      );
-    }
-    record.count++;
-  } else {
-    orderRateLimit.set(ip, {
-      count: 1,
-      resetAt: now + RATE_LIMIT_WINDOW
-    });
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many orders. Please try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil(rateLimit.retryAfterMs / 1000))
+        }
+      }
+    );
   }
 
   const payload = await request.json().catch(() => null);
@@ -60,34 +59,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: frameError.message }, { status: 500 });
   }
 
-  const frameMap = new Map((frames || []).map((frame) => [frame.id, frame]));
-  const orderItems = [];
-
-  for (const item of parsed.data.items) {
-    const frame = frameMap.get(item.frameId);
-    if (!frame) {
-      return NextResponse.json(
-        { error: "One or more products are unavailable." },
-        { status: 400 }
-      );
-    }
-    if (item.qty > frame.quantity) {
-      return NextResponse.json(
-        { error: `${frame.name} has only ${frame.quantity} in stock.` },
-        { status: 400 }
-      );
-    }
-    orderItems.push({
-      frame,
-      qty: item.qty,
-      price: Number(frame.price)
-    });
+  const builtOrder = buildOrderItems(parsed.data.items, frames || []);
+  if (!builtOrder.ok) {
+    return NextResponse.json(
+      { error: builtOrder.error },
+      { status: builtOrder.status }
+    );
   }
 
-  const total = orderItems.reduce(
-    (sum, item) => sum + Number(item.frame.price) * item.qty,
-    0
-  );
+  const { orderItems, total } = builtOrder;
   const address =
     parsed.data.fulfillment_method === "pickup"
       ? `Store Pickup - ${getShopConfig().address}`
