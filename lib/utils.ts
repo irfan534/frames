@@ -1,0 +1,51 @@
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+export function formatCurrency(amount: number | string) {
+  const value = typeof amount === "string" ? Number(amount) : amount;
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0
+  }).format(Number.isFinite(value) ? value : 0);
+}
+
+export function getShopConfig() {
+  return {
+    name: process.env.NEXT_PUBLIC_SHOP_NAME || "Vision Thru Optics Velachery",
+    phone: process.env.NEXT_PUBLIC_SHOP_PHONE || "+91 98765 43210",
+    whatsappNumber:
+      process.env.NEXT_PUBLIC_SHOP_WHATSAPP_NUMBER || "919876543210",
+    address:
+      process.env.NEXT_PUBLIC_SHOP_ADDRESS ||
+      "Velachery, Chennai, Tamil Nadu",
+    qrImage:
+      process.env.NEXT_PUBLIC_UPI_QR_IMAGE_URL ||
+      "/images/upi-qr-placeholder.svg"
+  };
+}
+
+export function imageFallback(seed: string) {
+  const index = Math.abs(
+    seed.split("").reduce((total, char) => total + char.charCodeAt(0), 0)
+  );
+
+  const images = [
+    "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1509695507497-903c140c43b0?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1556306535-38febf6782e7?auto=format&fit=crop&w=900&q=85"
+  ];
+
+  return images[index % images.length];
+}
+
+export function stockLabel(quantity: number) {
+  if (quantity <= 0) return "Out of Stock";
+  if (quantity <= 5) return "Low Stock";
+  return "In Stock";
+}

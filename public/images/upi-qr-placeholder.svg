@@ -1,0 +1,35 @@
+<svg width="520" height="520" viewBox="0 0 520 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="520" height="520" rx="28" fill="#FFFFFF"/>
+  <rect x="24" y="24" width="472" height="472" rx="20" fill="#F9F8F6" stroke="#111111" stroke-width="4"/>
+  <g fill="#111111">
+    <rect x="58" y="58" width="112" height="112" rx="6"/>
+    <rect x="78" y="78" width="72" height="72" rx="4" fill="#F9F8F6"/>
+    <rect x="98" y="98" width="32" height="32" rx="3"/>
+    <rect x="350" y="58" width="112" height="112" rx="6"/>
+    <rect x="370" y="78" width="72" height="72" rx="4" fill="#F9F8F6"/>
+    <rect x="390" y="98" width="32" height="32" rx="3"/>
+    <rect x="58" y="350" width="112" height="112" rx="6"/>
+    <rect x="78" y="370" width="72" height="72" rx="4" fill="#F9F8F6"/>
+    <rect x="98" y="390" width="32" height="32" rx="3"/>
+    <rect x="210" y="66" width="34" height="34"/>
+    <rect x="270" y="66" width="34" height="34"/>
+    <rect x="226" y="126" width="68" height="34"/>
+    <rect x="198" y="198" width="34" height="34"/>
+    <rect x="250" y="198" width="86" height="34"/>
+    <rect x="372" y="198" width="34" height="34"/>
+    <rect x="76" y="226" width="44" height="34"/>
+    <rect x="146" y="226" width="34" height="34"/>
+    <rect x="226" y="260" width="34" height="34"/>
+    <rect x="286" y="260" width="86" height="34"/>
+    <rect x="414" y="260" width="34" height="34"/>
+    <rect x="198" y="326" width="72" height="34"/>
+    <rect x="312" y="326" width="34" height="34"/>
+    <rect x="384" y="326" width="78" height="34"/>
+    <rect x="198" y="390" width="34" height="72"/>
+    <rect x="260" y="390" width="54" height="34"/>
+    <rect x="352" y="390" width="34" height="72"/>
+    <rect x="414" y="420" width="48" height="42"/>
+  </g>
+  <rect x="178" y="468" width="164" height="20" rx="10" fill="#0D6E6E"/>
+  <text x="260" y="492" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111111">GPay / PhonePe QR</text>
+</svg>

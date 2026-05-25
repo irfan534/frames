@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 42 27% 97%;
+  --foreground: 0 0% 10%;
+  --border: 36 12% 86%;
+  --input: 36 12% 86%;
+  --ring: 180 79% 24%;
+  --font-display: "Syne";
+  --font-sans: "DM Sans";
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: #f9f8f6;
+  color: #1a1a1a;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(13, 110, 110, 0.18);
+}
+
+.container-page {
+  width: min(1180px, calc(100% - 32px));
+  margin-inline: auto;
+}
+
+.hero-mesh {
+  background:
+    radial-gradient(circle at 78% 18%, rgba(245, 166, 35, 0.34), transparent 28%),
+    radial-gradient(circle at 18% 82%, rgba(255, 107, 107, 0.24), transparent 30%),
+    linear-gradient(135deg, #111111 0%, #0d3434 48%, #0d6e6e 100%);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
