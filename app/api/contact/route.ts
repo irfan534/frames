@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { contactSchema } from "@/lib/validations";
 import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { logError } from "@/lib/logger";
 
 const contactRateLimit = createRateLimiter({
   windowMs: 10 * 60 * 1000,
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
   if (supabase) {
     const { error } = await supabase.from("contact_messages").insert(parsed.data);
     if (error) {
-      console.error("[contact] Unable to save message:", error.message);
+      logError("contact", error, { email: parsed.data.email });
     }
   }
 

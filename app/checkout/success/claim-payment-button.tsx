@@ -58,7 +58,7 @@ export function ClaimPaymentButton({ orderId }: { orderId: string }) {
         onClick={claimPayment}
         type="button"
       >
-        {loading ? "Confirming..." : "I have paid"}
+        {loading ? "Submitting…" : "I have paid"}
       </button>
       {error ? (
         <p className="mt-3 text-sm font-medium text-red-600">{error}</p>

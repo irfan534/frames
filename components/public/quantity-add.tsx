@@ -1,15 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Minus, Plus } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { AddToCartButton } from "@/components/public/add-to-cart-button";
+import { useCartStore } from "@/lib/cart-store";
 import type { Frame } from "@/lib/types";
 
 export function QuantityAdd({ frame }: { frame: Frame }) {
   const [qty, setQty] = useState(1);
+  const router = useRouter();
+  const addItem = useCartStore((state) => state.addItem);
   const max = Math.max(frame.quantity, 1);
+  const disabled = frame.quantity <= 0;
+
+  function buyNow() {
+    addItem(frame, qty);
+    toast.success(`${frame.name} added to checkout`);
+    router.push("/checkout");
+  }
 
   return (
     <div className="space-y-4">
@@ -34,8 +45,8 @@ export function QuantityAdd({ frame }: { frame: Frame }) {
         </div>
       </div>
       <AddToCartButton frame={frame} qty={qty} full />
-      <Button asChild variant="dark" className="w-full">
-        <Link href="/checkout">Buy Now</Link>
+      <Button variant="dark" className="w-full" disabled={disabled} onClick={buyNow}>
+        {disabled ? "Out of Stock" : "Buy Now"}
       </Button>
     </div>
   );

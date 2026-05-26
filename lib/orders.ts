@@ -28,6 +28,7 @@ export type BuildOrderItemsResult<TFrame extends CheckoutFrame> =
       error: string;
     };
 
+/** Parses and validates the final owner-confirmed order total. */
 export function parseFinalOrderTotal(value: unknown):
   | { ok: true; total: number }
   | { ok: false; error: string } {
@@ -41,6 +42,7 @@ export function parseFinalOrderTotal(value: unknown):
   return { ok: true, total };
 }
 
+/** Builds validated, server-priced order items from cart input and DB frames. */
 export function buildOrderItems<TFrame extends CheckoutFrame>(
   items: CheckoutLineItem[],
   frames: TFrame[]

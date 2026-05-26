@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { checkoutSchema } from "@/lib/validations";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getShopConfig } from "@/lib/utils";
+import { logError, logInfo } from "@/lib/logger";
 import { buildOrderItems } from "@/lib/orders";
 import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
 
@@ -94,6 +95,7 @@ export async function POST(request: Request) {
     .single();
 
   if (orderError || !order) {
+    logError("orders", orderError || "Order could not be created");
     return NextResponse.json(
       { error: orderError?.message || "Order could not be created" },
       { status: 500 }
@@ -110,9 +112,12 @@ export async function POST(request: Request) {
   );
 
   if (itemsError) {
+    logError("orders", itemsError, { orderId: order.id });
     await supabase.from("orders").update({ order_status: "cancelled" }).eq("id", order.id);
     return NextResponse.json({ error: itemsError.message }, { status: 500 });
   }
+
+  logInfo("orders", "order created", { orderId: order.id });
 
   return NextResponse.json({
     orderId: order.id,

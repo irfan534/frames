@@ -2,7 +2,11 @@ import { unstable_noStore as noStore } from "next/cache";
 import type { Frame, OrderWithItems, Sale } from "@/lib/types";
 import { productPageSize } from "@/lib/constants";
 import { sampleFrames, sampleOrders, sampleSales } from "@/lib/sample-data";
-import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import {
+  createSupabasePublicClient,
+  createSupabaseServerClient,
+  isSupabaseConfigured
+} from "@/lib/supabase/server";
 import { buildProductSearchFilter, matchesProductSearch } from "@/lib/product-search";
 
 const frameColumns =
@@ -40,7 +44,7 @@ export async function getProducts(query: ProductQuery = {}) {
     };
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicClient();
   if (!supabase) {
     return { products: [], count: 0, page, pageCount: 1, unavailable: true };
   }
@@ -92,7 +96,7 @@ export async function getProduct(id: string) {
     return sampleFrames.find((frame) => frame.id === id || frame.frame_code === id) || null;
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicClient();
   if (!supabase) return null;
 
   const productResult = await supabase

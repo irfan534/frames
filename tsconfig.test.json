@@ -9,9 +9,12 @@
     "types": ["node"]
   },
   "include": [
+    "lib/csrf-core.ts",
     "lib/orders.ts",
     "lib/product-search.ts",
     "lib/rate-limit.ts",
+    "lib/validations.ts",
+    "lib/whatsapp-format.ts",
     "tests/test-helpers.ts",
     "tests/run-tests.ts",
     "tests/**/*.test.ts"

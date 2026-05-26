@@ -19,6 +19,7 @@ type HeaderReader = {
   get(name: string): string | null;
 };
 
+/** Creates an in-memory fixed-window rate limiter keyed by client identifier. */
 export function createRateLimiter({ windowMs, max }: RateLimitOptions) {
   const records = new Map<string, RateLimitRecord>();
 
@@ -61,6 +62,7 @@ export function createRateLimiter({ windowMs, max }: RateLimitOptions) {
   };
 }
 
+/** Extracts the best-effort client IP from proxy headers. */
 export function getClientIp(headers: HeaderReader) {
   const forwarded = headers.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0]?.trim() || "unknown";

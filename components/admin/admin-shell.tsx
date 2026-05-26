@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, Boxes, Home, LogOut, PackageCheck, Settings } from "lucide-react";
+import { BarChart3, Boxes, Home, LogOut, MessageSquareText, PackageCheck, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn, getShopConfig } from "@/lib/utils";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -12,6 +12,7 @@ const nav = [
   { href: "/admin", label: "Dashboard", icon: Home },
   { href: "/admin/inventory", label: "Inventory", icon: Boxes },
   { href: "/admin/orders", label: "Orders", icon: PackageCheck },
+  { href: "/admin/contact-messages", label: "Messages", icon: MessageSquareText },
   { href: "/admin/sales", label: "Sales", icon: BarChart3 },
   { href: "/admin/settings", label: "Settings", icon: Settings }
 ];
@@ -79,7 +80,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-5 border-t border-border bg-white lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 border-t border-border bg-white lg:hidden">
         {nav.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}

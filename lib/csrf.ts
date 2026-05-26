@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { originsMatch } from "@/lib/csrf-core";
 
 export async function checkOrigin(): Promise<boolean> {
   const h = await headers();
@@ -13,20 +14,6 @@ export async function checkOrigin(): Promise<boolean> {
     originsMatch(origin, siteUrl) ||
     originsMatch(origin, host ? `${protocol}://${host}` : "")
   );
-}
-
-function originsMatch(source: string, allowed: string) {
-  if (!allowed) return false;
-
-  try {
-    return new URL(source).origin === new URL(withProtocol(allowed)).origin;
-  } catch {
-    return false;
-  }
-}
-
-function withProtocol(url: string) {
-  return /^[a-z][a-z\d+\-.]*:\/\//i.test(url) ? url : `https://${url}`;
 }
 
 function firstHeaderValue(value: string | null) {

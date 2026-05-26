@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { QrCode } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -20,7 +20,7 @@ type CheckoutFields = Omit<z.infer<typeof checkoutSchema>, "items">;
 export function CheckoutForm() {
   const router = useRouter();
   const shop = getShopConfig();
-  const { items, subtotal, clearCart } = useCartStore();
+  const { items, hasHydrated, subtotal, clearCart } = useCartStore();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [fulfillmentMethod, setFulfillmentMethod] = useState<"delivery" | "pickup">("delivery");
@@ -30,6 +30,12 @@ export function CheckoutForm() {
     () => items.map((item) => ({ frameId: item.id, qty: item.cartQty })),
     [items]
   );
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      void useCartStore.persist.rehydrate();
+    }
+  }, [hasHydrated]);
 
   async function onSubmit(formData: FormData) {
     const values: CheckoutFields = {
@@ -75,6 +81,14 @@ export function CheckoutForm() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (!hasHydrated) {
+    return (
+      <main className="container-page grid min-h-[60vh] place-items-center py-20 text-center">
+        <p className="font-display text-3xl font-bold">Loading checkout...</p>
+      </main>
+    );
   }
 
   if (items.length === 0) {

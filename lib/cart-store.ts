@@ -6,10 +6,12 @@ import type { CartItem, Frame } from "@/lib/types";
 
 type CartStore = {
   items: CartItem[];
+  hasHydrated: boolean;
   addItem: (frame: Frame, qty?: number) => void;
   removeItem: (id: string) => void;
   updateQty: (id: string, qty: number) => void;
   clearCart: () => void;
+  setHasHydrated: (value: boolean) => void;
   subtotal: () => number;
   count: () => number;
 };
@@ -18,6 +20,7 @@ export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      hasHydrated: false,
       addItem: (frame, qty = 1) =>
         set((state) => {
           const existing = state.items.find((item) => item.id === frame.id);
@@ -57,13 +60,18 @@ export const useCartStore = create<CartStore>()(
           )
         })),
       clearCart: () => set({ items: [] }),
+      setHasHydrated: (value) => set({ hasHydrated: value }),
       subtotal: () =>
         get().items.reduce((total, item) => total + Number(item.price) * item.cartQty, 0),
       count: () => get().items.reduce((total, item) => total + item.cartQty, 0)
     }),
     {
       name: "clearview-cart",
-      skipHydration: true
+      partialize: (state) => ({ items: state.items }),
+      skipHydration: true,
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      }
     }
   )
 );

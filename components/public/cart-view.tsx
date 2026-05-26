@@ -2,14 +2,29 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect } from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/cart-store";
 import { formatCurrency, framePrimaryImage } from "@/lib/utils";
 
 export function CartView() {
-  const { items, removeItem, updateQty, subtotal } = useCartStore();
+  const { items, hasHydrated, removeItem, updateQty, subtotal } = useCartStore();
   const total = subtotal();
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      void useCartStore.persist.rehydrate();
+    }
+  }, [hasHydrated]);
+
+  if (!hasHydrated) {
+    return (
+      <div className="container-page grid min-h-[60vh] place-items-center py-20 text-center">
+        <p className="font-display text-3xl font-bold">Loading cart...</p>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (

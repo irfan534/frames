@@ -1,10 +1,38 @@
 import { NextResponse } from "next/server";
+import { logError, logInfo } from "@/lib/logger";
+import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { orderStatusSchema } from "@/lib/validations";
 
 type Context = { params: Promise<{ id: string }> };
 
-export async function PATCH(_request: Request, context: Context) {
+const claimRateLimit = createRateLimiter({
+  windowMs: 10 * 60 * 1000,
+  max: 5
+});
+
+export async function PATCH(request: Request, context: Context) {
+  const rateLimit = claimRateLimit.check(getClientIp(request.headers));
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many payment claims. Please try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil(rateLimit.retryAfterMs / 1000))
+        }
+      }
+    );
+  }
+
   const { id } = await context.params;
+  const parsed = orderStatusSchema.safeParse({ id });
+
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid order id." }, { status: 400 });
+  }
+
   const supabase = createSupabaseAdminClient();
 
   if (!supabase) {
@@ -23,10 +51,12 @@ export async function PATCH(_request: Request, context: Context) {
     .maybeSingle();
 
   if (error) {
+    logError("claim", error, { orderId: id });
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
   if (data) {
+    logInfo("claim", "payment claimed", { orderId: id });
     return NextResponse.json({ ok: true });
   }
 
@@ -37,6 +67,7 @@ export async function PATCH(_request: Request, context: Context) {
     .maybeSingle();
 
   if (orderError) {
+    logError("claim", orderError, { orderId: id });
     return NextResponse.json({ error: orderError.message }, { status: 400 });
   }
 
@@ -45,6 +76,7 @@ export async function PATCH(_request: Request, context: Context) {
   }
 
   if (order.payment_status === "payment_claimed") {
+    logInfo("claim", "payment claimed", { orderId: id });
     return NextResponse.json({ ok: true });
   }
 

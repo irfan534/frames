@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { checkOrigin } from "@/lib/csrf";
+import { logError } from "@/lib/logger";
 import { parseFinalOrderTotal } from "@/lib/orders";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -36,6 +37,7 @@ export async function POST(request: Request, context: Context) {
   });
 
   if (error) {
+    logError("admin.confirm-order", error, { orderId: id });
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 

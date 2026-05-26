@@ -1,4 +1,5 @@
 import { formatCurrency, getShopConfig } from "@/lib/utils";
+import { MAX_WHATSAPP_MESSAGE_CHARS, truncate } from "./whatsapp-format";
 
 type WhatsAppOrder = {
   name: string;
@@ -18,6 +19,8 @@ type WhatsAppOrder = {
 };
 
 export function generateWhatsAppMessage(order: WhatsAppOrder) {
+  const address = truncate(order.address, 200);
+  const notes = truncate(order.notes ?? "", 200);
   const itemLines = order.items
     .map((item) => {
       const qty = item.cartQty || item.qty || 1;
@@ -29,7 +32,7 @@ export function generateWhatsAppMessage(order: WhatsAppOrder) {
     })
     .join("\n");
 
-  return [
+  const message = [
     "Hi! I'd like to place an order.",
     `Name: ${order.name}`,
     `Phone: ${order.phone}`,
@@ -37,12 +40,14 @@ export function generateWhatsAppMessage(order: WhatsAppOrder) {
     "Items:",
     itemLines,
     `Total: ${formatCurrency(order.total)}`,
-    `${order.fulfillmentMethod === "pickup" ? "Pickup Location" : "Delivery Address"}: ${order.address}`,
-    order.notes ? `Notes: ${order.notes}` : null,
+    `${order.fulfillmentMethod === "pickup" ? "Pickup Location" : "Delivery Address"}: ${address}`,
+    notes ? `Notes: ${notes}` : null,
     "I will scan the QR and send the payment screenshot here."
   ]
     .filter(Boolean)
     .join("\n");
+
+  return truncate(message, MAX_WHATSAPP_MESSAGE_CHARS);
 }
 
 export function generateWhatsAppUrl(message: string) {
