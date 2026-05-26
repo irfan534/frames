@@ -12,7 +12,7 @@ export function PublicFooter() {
         <div>
           <div className="flex items-center gap-2">
             <Image
-              src="/images/vision-thru-optics-logo.webp"
+              src="/images/shoplogo.png"
               alt={`${shop.name} logo`}
               width={64}
               height={64}

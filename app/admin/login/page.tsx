@@ -14,7 +14,7 @@ export default function AdminLoginPage() {
       <section className="w-full max-w-md rounded-lg border border-border bg-white p-6 shadow-soft">
         <div className="text-center">
           <Image
-            src="/images/vision-thru-optics-logo.webp"
+            src="/images/shoplogo.png"
             alt="Vision Thru Optics Velachery logo"
             width={112}
             height={112}

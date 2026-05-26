@@ -34,7 +34,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <aside className="fixed left-0 top-0 z-30 hidden h-screen w-72 border-r border-border bg-white p-5 lg:flex lg:flex-col">
         <Link href="/admin" className="flex items-center gap-3">
           <Image
-            src="/images/vision-thru-optics-logo.webp"
+            src="/images/shoplogo.png"
             alt={`${shop.name} logo`}
             width={52}
             height={52}

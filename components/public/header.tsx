@@ -42,7 +42,7 @@ export function PublicHeader() {
       <div className="container-page flex h-18 items-center justify-between gap-4 py-3">
         <Link href="/" className="flex items-center gap-2">
           <Image
-            src="/images/vision-thru-optics-logo.webp"
+            src="/images/shoplogo.png"
             alt={`${shop.name} logo`}
             width={48}
             height={48}
