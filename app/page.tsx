@@ -114,9 +114,18 @@ export default async function HomePage() {
             </h2>
             <div className="mt-8 grid gap-5 md:grid-cols-3">
               {[
-                ["Aarav S.", "Fast WhatsApp ordering and the frame quality feels premium."],
-                ["Meera K.", "They helped my father pick the right lenses without rushing."],
-                ["Rohan P.", "Simple QR payment, quick confirmation, and clean packaging."]
+                [
+                  "Nafees Nafees",
+                  "I am satisfied with the specs and sunglasses. Worth for money, excellent service."
+                ],
+                [
+                  "Vijaya Kumari",
+                  "Best shop 🤩 frame colour and quality best in the market. Regular customer more than 15 yrs just give a visit and try see the result. 💗💗💗"
+                ],
+                [
+                  "Ajit Singh",
+                  "Friendly and knowledgeable. Has always suggested me nothing more than what is required ..."
+                ]
               ].map(([name, review]) => (
                 <article key={name} className="rounded-lg border border-border bg-optical-shell p-5">
                   <div className="text-gold">★★★★★</div>

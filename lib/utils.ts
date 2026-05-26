@@ -15,15 +15,20 @@ export function formatCurrency(amount: number | string) {
 }
 
 export function getShopConfig() {
+  const name = process.env.NEXT_PUBLIC_SHOP_NAME || "Vision Thru Optics Velachery";
   const phone = process.env.NEXT_PUBLIC_SHOP_PHONE || "+91 98765 43210";
+  const address =
+    process.env.NEXT_PUBLIC_SHOP_ADDRESS ||
+    "Vision Thr'u Optics, 153 A, G2, Velachery Bypass Rd, near Spencer's Daily, Velachery, Chennai, Tamil Nadu 600042";
+  const mapsQuery = encodeURIComponent(`${name}, ${address}`);
 
   return {
-    name: process.env.NEXT_PUBLIC_SHOP_NAME || "Vision Thru Optics Velachery",
+    name,
     phone,
     whatsappNumber: phone.replace(/\D/g, ""),
-    address:
-      process.env.NEXT_PUBLIC_SHOP_ADDRESS ||
-      "Velachery, Chennai, Tamil Nadu",
+    address,
+    googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`,
+    googleMapsEmbedUrl: `https://www.google.com/maps?q=${mapsQuery}&output=embed`,
     qrImage:
       process.env.NEXT_PUBLIC_UPI_QR_IMAGE_URL ||
       "/images/upi-qr-placeholder.svg"

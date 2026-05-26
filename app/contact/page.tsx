@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MapPin, MessageCircle, Phone } from "lucide-react";
+import { ExternalLink, MapPin, MessageCircle, Phone } from "lucide-react";
 import { ContactForm } from "@/components/public/contact-form";
 import { StoreShell } from "@/components/public/store-shell";
 import { Button } from "@/components/ui/button";
@@ -49,9 +49,21 @@ export default function ContactPage() {
               <Button asChild variant="outline">
                 <Link href="/products">Browse Frames</Link>
               </Button>
+              <Button asChild variant="outline">
+                <a href={shop.googleMapsUrl} target="_blank" rel="noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                  Google Maps
+                </a>
+              </Button>
             </div>
-            <div className="mt-6 grid h-64 place-items-center rounded-lg bg-optical-fog text-sm font-semibold text-optical-muted">
-              Google Maps
+            <div className="mt-6 h-64 overflow-hidden rounded-lg border border-border bg-optical-fog">
+              <iframe
+                title={`${shop.name} location on Google Maps`}
+                src={shop.googleMapsEmbedUrl}
+                className="h-full w-full border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
             </div>
           </section>
 

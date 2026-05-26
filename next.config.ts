@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const contentSecurityPolicy =
-  "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com; font-src 'self'; connect-src 'self' https://*.supabase.co; frame-ancestors 'none';";
+  "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com; font-src 'self'; connect-src 'self' https://*.supabase.co; frame-src https://www.google.com; frame-ancestors 'none';";
 
 const nextConfig: NextConfig = {
   images: {
