@@ -17,6 +17,10 @@ export function LoginForm() {
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
+  const configurationMessage =
+    process.env.NODE_ENV === "production"
+      ? "Supabase is not configured. Add the Supabase environment variables in Vercel, then redeploy."
+      : "Supabase is not configured. Add `.env.local` values from `.env.example`.";
 
   async function login(formData: FormData) {
     if (!configured) {
@@ -72,7 +76,7 @@ export function LoginForm() {
       </div>
       {!configured ? (
         <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">
-          Supabase is not configured. Add `.env.local` values from `.env.example`.
+          {configurationMessage}
         </p>
       ) : null}
       {connectionError ? (
