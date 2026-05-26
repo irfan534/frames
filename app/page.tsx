@@ -9,7 +9,6 @@ import { getProducts } from "@/lib/data";
 
 export default async function HomePage() {
   const trending = await getProducts({ limit: 4, sort: "popular" });
-  const bestsellers = await getProducts({ limit: 4, sort: "price-desc" });
 
   return (
     <StoreShell>
@@ -97,12 +96,6 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
-
-        <ProductSection
-          eyebrow="Bestsellers"
-          title="The pairs customers keep asking for"
-          products={bestsellers.products}
-        />
 
         <section className="bg-white py-14">
           <div className="container-page">
