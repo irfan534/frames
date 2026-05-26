@@ -15,11 +15,12 @@ export function formatCurrency(amount: number | string) {
 }
 
 export function getShopConfig() {
+  const phone = process.env.NEXT_PUBLIC_SHOP_PHONE || "+91 98765 43210";
+
   return {
     name: process.env.NEXT_PUBLIC_SHOP_NAME || "Vision Thru Optics Velachery",
-    phone: process.env.NEXT_PUBLIC_SHOP_PHONE || "+91 98765 43210",
-    whatsappNumber:
-      process.env.NEXT_PUBLIC_SHOP_WHATSAPP_NUMBER || "919876543210",
+    phone,
+    whatsappNumber: phone.replace(/\D/g, ""),
     address:
       process.env.NEXT_PUBLIC_SHOP_ADDRESS ||
       "Velachery, Chennai, Tamil Nadu",
