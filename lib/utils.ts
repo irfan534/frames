@@ -14,12 +14,23 @@ export function formatCurrency(amount: number | string) {
   }).format(Number.isFinite(value) ? value : 0);
 }
 
+const DEFAULT_SHOP_NAME = "Vision Thru Optics Velachery";
+const DEFAULT_SHOP_PHONE = "+91 7305319309";
+const DEFAULT_SHOP_ADDRESS =
+  "Vision Thr'u Optics, 153 A, G2, Velachery Bypass Rd, near Spencer's Daily, Velachery, Chennai, Tamil Nadu 600042";
+
 export function getShopConfig() {
-  const name = process.env.NEXT_PUBLIC_SHOP_NAME || "Vision Thru Optics Velachery";
-  const phone = process.env.NEXT_PUBLIC_SHOP_PHONE || "+91 98765 43210";
+  const name = process.env.NEXT_PUBLIC_SHOP_NAME || DEFAULT_SHOP_NAME;
+  const phone =
+    !process.env.NEXT_PUBLIC_SHOP_PHONE ||
+    process.env.NEXT_PUBLIC_SHOP_PHONE === "+91 98765 43210"
+      ? DEFAULT_SHOP_PHONE
+      : process.env.NEXT_PUBLIC_SHOP_PHONE;
   const address =
-    process.env.NEXT_PUBLIC_SHOP_ADDRESS ||
-    "Vision Thr'u Optics, 153 A, G2, Velachery Bypass Rd, near Spencer's Daily, Velachery, Chennai, Tamil Nadu 600042";
+    !process.env.NEXT_PUBLIC_SHOP_ADDRESS ||
+    process.env.NEXT_PUBLIC_SHOP_ADDRESS === "Velachery, Chennai, Tamil Nadu"
+      ? DEFAULT_SHOP_ADDRESS
+      : process.env.NEXT_PUBLIC_SHOP_ADDRESS;
   const mapsQuery = encodeURIComponent(`${name}, ${address}`);
 
   return {
