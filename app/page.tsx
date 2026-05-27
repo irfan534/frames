@@ -39,10 +39,14 @@ export default async function HomePage() {
             </div>
             <div className="relative min-h-[420px]">
               <div className="absolute inset-0 rounded-[28px] bg-white/10" />
-              {/* TODO: Replace with actual shop photo — upload as /public/images/hero.jpg */}
+              {/*
+                Photo by GlassesShop on Unsplash
+                https://unsplash.com/photos/OOUtDEzroy8?utm_source=vision_thru_optics&utm_medium=referral
+                Free to use under Unsplash License — commercial use allowed
+              */}
               <Image
-                src="/images/hero.svg"
-                alt="Person wearing premium eyeglasses"
+                src="https://images.unsplash.com/photo-1739758443031-8d1cfc897236?auto=format&fit=crop&w=1200&q=88"
+                alt="A man wearing glasses and a brown shirt"
                 fill
                 priority
                 sizes="(min-width: 1024px) 520px, 100vw"
