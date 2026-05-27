@@ -48,6 +48,18 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
               {product.name}
             </h1>
             <p className="mt-4 text-3xl font-bold">{formatCurrency(product.price)}</p>
+            {product.offer_label ? (
+              <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3">
+                <Badge variant={product.offer_type === "combo" ? "warning" : "blue"}>
+                  {product.offer_label}
+                </Badge>
+                {product.offer_description ? (
+                  <p className="mt-2 text-sm leading-6 text-optical-muted">
+                    {product.offer_description}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
             <div className="mt-4 flex items-center gap-3">
               <Badge
                 variant={

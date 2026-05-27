@@ -34,7 +34,8 @@ export async function POST(request: Request) {
   }
 
   const extension = file.name.split(".").pop()?.toLowerCase() || "webp";
-  const path = `frames/${crypto.randomUUID()}.${extension}`;
+  const uploadFolder = formData.get("folder") === "shop-photos" ? "shop-photos" : "frames";
+  const path = `${uploadFolder}/${crypto.randomUUID()}.${extension}`;
   const { error } = await supabase.storage.from("frame-images").upload(path, file, {
     contentType: file.type,
     upsert: false

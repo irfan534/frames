@@ -20,6 +20,9 @@ create table if not exists public.frames (
   image_url text,
   image_urls text[] not null default '{}',
   colors text[] not null default '{}',
+  offer_type text check (offer_type in ('custom', 'combo')),
+  offer_label text,
+  offer_description text,
   is_active boolean default true,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -30,6 +33,15 @@ add column if not exists image_urls text[] not null default '{}';
 
 alter table public.frames
 add column if not exists colors text[] not null default '{}';
+
+alter table public.frames
+add column if not exists offer_type text check (offer_type in ('custom', 'combo'));
+
+alter table public.frames
+add column if not exists offer_label text;
+
+alter table public.frames
+add column if not exists offer_description text;
 
 update public.frames
 set image_urls = array[image_url]
@@ -68,11 +80,19 @@ create table if not exists public.sales (
   sold_at timestamptz default now()
 );
 
+create table if not exists public.shop_photos (
+  id uuid primary key default gen_random_uuid(),
+  image_url text not null,
+  display_order integer not null default 0 check (display_order >= 0 and display_order < 10),
+  created_at timestamptz default now()
+);
+
 create index if not exists frames_active_category_idx on public.frames(is_active, category);
 create index if not exists frames_brand_idx on public.frames(brand);
 create index if not exists orders_payment_status_idx on public.orders(payment_status);
 create index if not exists order_items_order_id_idx on public.order_items(order_id);
 create index if not exists sales_sold_at_idx on public.sales(sold_at desc);
+create index if not exists shop_photos_display_order_idx on public.shop_photos(display_order asc);
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -121,6 +141,7 @@ alter table public.frames enable row level security;
 alter table public.orders enable row level security;
 alter table public.order_items enable row level security;
 alter table public.sales enable row level security;
+alter table public.shop_photos enable row level security;
 
 drop policy if exists "Admins can read admin users" on public.admin_users;
 create policy "Admins can read admin users"
@@ -163,6 +184,21 @@ with check (public.is_admin());
 drop policy if exists "Admins can manage sales" on public.sales;
 create policy "Admins can manage sales"
 on public.sales
+for all
+to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+drop policy if exists "Public can read shop photos" on public.shop_photos;
+create policy "Public can read shop photos"
+on public.shop_photos
+for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "Admins can manage shop photos" on public.shop_photos;
+create policy "Admins can manage shop photos"
+on public.shop_photos
 for all
 to authenticated
 using (public.is_admin())

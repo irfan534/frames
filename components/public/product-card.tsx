@@ -22,11 +22,21 @@ export function ProductCard({ frame }: { frame: Frame }) {
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
             className="object-cover transition duration-500 group-hover:scale-105"
           />
-          {frame.brand ? (
-            <Badge className="absolute left-3 top-3 bg-white text-optical-text">
-              {frame.brand}
-            </Badge>
-          ) : null}
+          <div className="absolute left-3 top-3 flex max-w-[calc(100%-72px)] flex-col items-start gap-2">
+            {frame.offer_label ? (
+              <Badge
+                variant={frame.offer_type === "combo" ? "warning" : "blue"}
+                className="shadow-sm"
+              >
+                {frame.offer_label}
+              </Badge>
+            ) : null}
+            {frame.brand ? (
+              <Badge className="bg-white text-optical-text shadow-sm">
+                {frame.brand}
+              </Badge>
+            ) : null}
+          </div>
           <button className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/92 text-optical-text shadow-sm">
             <Heart className="h-4 w-4" />
             <span className="sr-only">Wishlist</span>

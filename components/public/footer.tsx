@@ -14,9 +14,9 @@ export function PublicFooter() {
             <Image
               src="/images/shoplogo.png"
               alt={`${shop.name} logo`}
-              width={64}
-              height={64}
-              className="h-16 w-16 rounded-md object-cover"
+              width={80}
+              height={80}
+              className="h-20 w-20 rounded-md object-cover"
             />
             <span className="font-display text-xl font-bold">{shop.name}</span>
           </div>

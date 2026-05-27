@@ -1,5 +1,5 @@
 import { unstable_noStore as noStore } from "next/cache";
-import type { Frame, OrderWithItems, Sale } from "@/lib/types";
+import type { Frame, OrderWithItems, Sale, ShopPhoto } from "@/lib/types";
 import { productPageSize } from "@/lib/constants";
 import { sampleFrames, sampleOrders, sampleSales } from "@/lib/sample-data";
 import {
@@ -10,6 +10,8 @@ import {
 import { buildProductSearchFilter, matchesProductSearch } from "@/lib/product-search";
 
 const frameColumns =
+  "id,frame_code,name,brand,category,description,price,quantity,image_url,image_urls,colors,offer_type,offer_label,offer_description,is_active,created_at,updated_at";
+const frameColumnsWithoutOffers =
   "id,frame_code,name,brand,category,description,price,quantity,image_url,image_urls,colors,is_active,created_at,updated_at";
 const legacyFrameColumns =
   "id,frame_code,name,brand,category,description,price,quantity,image_url,is_active,created_at,updated_at";
@@ -73,7 +75,10 @@ export async function getProducts(query: ProductQuery = {}) {
   };
 
   let { data, count, error } = await buildRequest(frameColumns).range(from, to);
-  if (isMissingOptionalFrameColumn(error)) {
+  if (isMissingOfferColumn(error)) {
+    ({ data, count, error } = await buildRequest(frameColumnsWithoutOffers).range(from, to));
+  }
+  if (isMissingImageColorColumn(error)) {
     ({ data, count, error } = await buildRequest(legacyFrameColumns).range(from, to));
   }
   if (error) {
@@ -109,14 +114,28 @@ export async function getProduct(id: string) {
   let error: { message?: string } | null = productResult.error;
 
   if (isMissingOptionalFrameColumn(error)) {
+    const columns = isMissingOfferColumn(error)
+      ? frameColumnsWithoutOffers
+      : legacyFrameColumns;
     const legacyProductResult = await supabase
       .from("frames")
-      .select(legacyFrameColumns)
+      .select(columns)
       .eq("id", id)
       .eq("is_active", true)
       .maybeSingle();
     data = legacyProductResult.data;
     error = legacyProductResult.error;
+
+    if (isMissingImageColorColumn(error)) {
+      const oldestProductResult = await supabase
+        .from("frames")
+        .select(legacyFrameColumns)
+        .eq("id", id)
+        .eq("is_active", true)
+        .maybeSingle();
+      data = oldestProductResult.data;
+      error = oldestProductResult.error;
+    }
   }
 
   if (error) {
@@ -143,12 +162,24 @@ export async function getAdminFrames() {
   let error: { message?: string } | null = framesResult.error;
 
   if (isMissingOptionalFrameColumn(error)) {
+    const columns = isMissingOfferColumn(error)
+      ? frameColumnsWithoutOffers
+      : legacyFrameColumns;
     const legacyFramesResult = await supabase
       .from("frames")
-      .select(legacyFrameColumns)
+      .select(columns)
       .order("created_at", { ascending: false });
     data = legacyFramesResult.data;
     error = legacyFramesResult.error;
+
+    if (isMissingImageColorColumn(error)) {
+      const oldestFramesResult = await supabase
+        .from("frames")
+        .select(legacyFrameColumns)
+        .order("created_at", { ascending: false });
+      data = oldestFramesResult.data;
+      error = oldestFramesResult.error;
+    }
   }
 
   if (error) {
@@ -206,6 +237,31 @@ export async function getAdminSales() {
   return (data || []) as unknown as Sale[];
 }
 
+export async function getShopPhotos() {
+  if (!isSupabaseConfigured()) return [];
+
+  const supabase = createSupabasePublicClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("shop_photos")
+    .select("id,image_url,display_order,created_at")
+    .order("display_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    logDataWarning("shop photos", error);
+    return [];
+  }
+
+  return (data || []) as ShopPhoto[];
+}
+
+export async function getAdminShopPhotos() {
+  noStore();
+  return getShopPhotos();
+}
+
 function filterSampleRows(rows: Frame[], query: ProductQuery) {
   return rows.filter((frame) => {
     if (query.category && frame.category !== query.category) return false;
@@ -228,9 +284,21 @@ function sortSampleRows(rows: Frame[], sort?: string) {
 }
 
 function isMissingOptionalFrameColumn(error: { message?: string } | null) {
+  return isMissingImageColorColumn(error) || isMissingOfferColumn(error);
+}
+
+function isMissingImageColorColumn(error: { message?: string } | null) {
   return Boolean(
     error?.message?.includes("image_urls") ||
     error?.message?.includes("colors")
+  );
+}
+
+function isMissingOfferColumn(error: { message?: string } | null) {
+  return Boolean(
+    error?.message?.includes("offer_type") ||
+    error?.message?.includes("offer_label") ||
+    error?.message?.includes("offer_description")
   );
 }
 

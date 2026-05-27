@@ -68,6 +68,9 @@ export const frameSchema = z.object({
   image_url: z.string().trim().url().optional().or(z.literal("")),
   image_urls: z.array(z.string().trim().url()).max(4, "Use up to 4 images per frame").optional().default([]),
   colors: z.array(z.string().trim().regex(/^#[0-9a-fA-F]{6}$/, "Enter a valid color")).max(6, "Use up to 6 colors per frame").optional().default([]),
+  offer_type: z.enum(["custom", "combo"]).nullable().optional(),
+  offer_label: z.string().trim().max(80).nullable().optional().or(z.literal("")),
+  offer_description: z.string().trim().max(240).nullable().optional().or(z.literal("")),
   is_active: z.coerce.boolean().default(true)
 });
 
@@ -79,4 +82,11 @@ export const imageUploadSchema = z.object({
   fileName: z.string().min(1),
   mimeType: z.enum(["image/jpeg", "image/jpg", "image/png", "image/webp"]),
   size: z.number().max(5 * 1024 * 1024)
+});
+
+export const shopPhotosSchema = z.object({
+  photos: z
+    .array(z.string().trim().url())
+    .min(1, "Upload at least 1 shop photo")
+    .max(10, "Use up to 10 shop photos")
 });

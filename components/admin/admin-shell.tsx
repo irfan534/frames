@@ -36,9 +36,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <Image
             src="/images/shoplogo.png"
             alt={`${shop.name} logo`}
-            width={52}
-            height={52}
-            className="h-[52px] w-[52px] rounded-md object-cover shadow-sm"
+            width={64}
+            height={64}
+            className="h-16 w-16 rounded-md object-cover shadow-sm"
           />
           <div>
             <p className="font-display text-lg font-bold">{shop.name}</p>

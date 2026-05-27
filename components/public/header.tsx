@@ -39,14 +39,14 @@ export function PublicHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-black/5 bg-optical-shell/92 backdrop-blur-xl">
-      <div className="container-page flex h-18 items-center justify-between gap-4 py-3">
+      <div className="container-page flex min-h-20 items-center justify-between gap-4 py-3">
         <Link href="/" className="flex items-center gap-2">
           <Image
             src="/images/shoplogo.png"
             alt={`${shop.name} logo`}
-            width={48}
-            height={48}
-            className="h-12 w-12 rounded-md object-cover shadow-sm"
+            width={64}
+            height={64}
+            className="h-14 w-14 rounded-md object-cover shadow-sm sm:h-16 sm:w-16"
           />
           <span className="max-w-[190px] font-display text-sm font-bold leading-tight sm:max-w-none sm:text-lg xl:text-xl">
             {shop.name}

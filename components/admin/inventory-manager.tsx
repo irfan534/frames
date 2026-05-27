@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { type ChangeEventHandler, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Edit, Plus, Search, Trash2, Upload } from "lucide-react";
+import { Edit, Gift, Plus, Search, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,12 @@ import { formatCurrency, framePrimaryImage } from "@/lib/utils";
 
 const maxFrameImages = 4;
 const maxFrameColors = 6;
+type OfferMode = "custom" | "combo" | "clear";
+
+const offerLabels: Record<Exclude<OfferMode, "clear">, string> = {
+  custom: "Special Offer",
+  combo: "Combo Offer"
+};
 
 export function InventoryManager({ frames }: { frames: Frame[] }) {
   const router = useRouter();
@@ -26,6 +33,7 @@ export function InventoryManager({ frames }: { frames: Frame[] }) {
   const [sort, setSort] = useState("new");
   const [editing, setEditing] = useState<Frame | null>(null);
   const [open, setOpen] = useState(false);
+  const [offerOpen, setOfferOpen] = useState(false);
 
   const rows = useMemo(() => {
     const filtered = frames.filter((frame) =>
@@ -84,6 +92,10 @@ export function InventoryManager({ frames }: { frames: Frame[] }) {
             <Plus className="h-4 w-4" />
             Add
           </Button>
+          <Button variant="accent" onClick={() => setOfferOpen(true)}>
+            <Gift className="h-4 w-4" />
+            Offer
+          </Button>
         </div>
       </div>
 
@@ -114,7 +126,17 @@ export function InventoryManager({ frames }: { frames: Frame[] }) {
                     </div>
                     <div>
                       <p className="font-semibold">{frame.name}</p>
-                      <p className="text-xs text-optical-muted">{frame.frame_code}</p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                        <p className="text-xs text-optical-muted">{frame.frame_code}</p>
+                        {frame.offer_label ? (
+                          <Badge
+                            variant={frame.offer_type === "combo" ? "warning" : "blue"}
+                            className="px-2 py-0 text-[11px]"
+                          >
+                            {frame.offer_label}
+                          </Badge>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 </TableCell>
@@ -165,7 +187,201 @@ export function InventoryManager({ frames }: { frames: Frame[] }) {
           router.refresh();
         }}
       />
+      <OfferDialog
+        frames={frames}
+        open={offerOpen}
+        onOpenChange={setOfferOpen}
+        onSaved={() => {
+          setOfferOpen(false);
+          router.refresh();
+        }}
+      />
     </div>
+  );
+}
+
+function OfferDialog({
+  frames,
+  open,
+  onOpenChange,
+  onSaved
+}: {
+  frames: Frame[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSaved: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<OfferMode>("custom");
+  const [label, setLabel] = useState(offerLabels.custom);
+  const [description, setDescription] = useState("");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  const activeFrames = frames.filter((frame) => frame.is_active);
+  const selectedFrames = activeFrames.filter((frame) => selectedIds.includes(frame.id));
+
+  function toggleFrame(frameId: string) {
+    setSelectedIds((current) =>
+      current.includes(frameId)
+        ? current.filter((id) => id !== frameId)
+        : [...current, frameId]
+    );
+  }
+
+  function updateMode(value: string) {
+    const nextMode = value as OfferMode;
+    setMode(nextMode);
+    if (nextMode === "custom" || nextMode === "combo") {
+      setLabel(offerLabels[nextMode]);
+    }
+  }
+
+  async function saveOffer() {
+    if (selectedFrames.length === 0) {
+      toast.error("Select at least one product");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await Promise.all(
+        selectedFrames.map(async (frame) => {
+          const payload = {
+            frame_code: frame.frame_code,
+            name: frame.name,
+            brand: frame.brand || "",
+            category: frame.category || "",
+            description: frame.description || "",
+            price: Number(frame.price),
+            quantity: frame.quantity,
+            image_url: frame.image_url || "",
+            image_urls: frame.image_urls?.length
+              ? frame.image_urls
+              : frame.image_url
+                ? [frame.image_url]
+                : [],
+            colors: frame.colors || [],
+            offer_type: mode === "clear" ? null : mode,
+            offer_label: mode === "clear" ? null : label.trim(),
+            offer_description: mode === "clear" ? null : description.trim(),
+            is_active: frame.is_active
+          };
+
+          const response = await fetch(`/api/admin/frames/${frame.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.error || `Could not update ${frame.name}`);
+          }
+        })
+      );
+
+      toast.success(
+        mode === "clear"
+          ? `Offer removed from ${selectedFrames.length} product${selectedFrames.length === 1 ? "" : "s"}`
+          : `Offer applied to ${selectedFrames.length} product${selectedFrames.length === 1 ? "" : "s"}`
+      );
+      setSelectedIds([]);
+      onSaved();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Offer update failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Manage offers</DialogTitle>
+          <DialogDescription>
+            Create a custom or combo offer tag for selected products.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="offer_type">Offer Type</Label>
+              <Select value={mode} onValueChange={updateMode}>
+                <SelectTrigger id="offer_type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="custom">Custom Offer</SelectItem>
+                  <SelectItem value="combo">Combo Offer</SelectItem>
+                  <SelectItem value="clear">Remove Offer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {mode !== "clear" ? (
+              <Field
+                key={mode}
+                name="offer_label"
+                label="Offer Tag"
+                defaultValue={label}
+                onChange={(event) => setLabel(event.target.value)}
+              />
+            ) : null}
+          </div>
+
+          {mode !== "clear" ? (
+            <div>
+              <Label htmlFor="offer_description">Offer Details</Label>
+              <Textarea
+                id="offer_description"
+                className="mt-2"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Example: Buy one frame and get lens upgrade discount"
+              />
+            </div>
+          ) : null}
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <Label>Products</Label>
+              <span className="text-xs font-semibold text-optical-muted">
+                {selectedFrames.length} selected
+              </span>
+            </div>
+            <div className="max-h-72 divide-y divide-border overflow-y-auto rounded-lg border border-border">
+              {activeFrames.map((frame) => (
+                <label
+                  key={frame.id}
+                  className="flex cursor-pointer items-center gap-3 p-3 text-sm hover:bg-optical-fog"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(frame.id)}
+                    onChange={() => toggleFrame(frame.id)}
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-semibold">{frame.name}</span>
+                    <span className="block text-xs text-optical-muted">
+                      {frame.frame_code}
+                      {frame.offer_label ? ` · Current: ${frame.offer_label}` : ""}
+                    </span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            disabled={loading || selectedFrames.length === 0 || (mode !== "clear" && !label.trim())}
+            onClick={saveOffer}
+          >
+            {loading ? "Saving..." : mode === "clear" ? "Remove Offer" : "Save Offer"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -419,11 +635,13 @@ function Field({
   name,
   label,
   defaultValue,
+  onChange,
   type = "text"
 }: {
   name: string;
   label: string;
   defaultValue?: string | number | null;
+  onChange?: ChangeEventHandler<HTMLInputElement>;
   type?: string;
 }) {
   return (
@@ -434,6 +652,7 @@ function Field({
         name={name}
         type={type}
         defaultValue={defaultValue ?? ""}
+        onChange={onChange}
         className="mt-2"
       />
     </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ExternalLink, MapPin, MessageCircle, Phone } from "lucide-react";
+import { Camera, ExternalLink, MapPin, MessageCircle, Phone } from "lucide-react";
 import { ContactForm } from "@/components/public/contact-form";
 import { StoreShell } from "@/components/public/store-shell";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,12 @@ export default function ContactPage() {
               </Button>
               <Button asChild variant="outline">
                 <Link href="/products">Browse Frames</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/shop-photos">
+                  <Camera className="h-4 w-4" />
+                  See Shop Photos
+                </Link>
               </Button>
               <Button asChild variant="outline">
                 <a href={shop.googleMapsUrl} target="_blank" rel="noreferrer">

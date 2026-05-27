@@ -10,6 +10,9 @@ export type Frame = {
   image_url: string | null;
   image_urls?: string[] | null;
   colors?: string[] | null;
+  offer_type?: "custom" | "combo" | null;
+  offer_label?: string | null;
+  offer_description?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at?: string | null;
@@ -52,4 +55,11 @@ export type Sale = {
   payment_method: string;
   sold_at: string;
   frames?: Pick<Frame, "name" | "brand" | "frame_code"> | null;
+};
+
+export type ShopPhoto = {
+  id: string;
+  image_url: string;
+  display_order: number;
+  created_at: string;
 };

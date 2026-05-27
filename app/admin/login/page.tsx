@@ -16,9 +16,9 @@ export default function AdminLoginPage() {
           <Image
             src="/images/shoplogo.png"
             alt="Vision Thru Optics Velachery logo"
-            width={112}
-            height={112}
-            className="mx-auto h-28 w-28 rounded-lg object-cover shadow-soft"
+            width={144}
+            height={144}
+            className="mx-auto h-36 w-36 rounded-lg object-cover shadow-soft"
           />
           <h1 className="mt-4 font-display text-3xl font-bold">Owner Login</h1>
           <p className="mt-2 text-sm text-optical-muted">

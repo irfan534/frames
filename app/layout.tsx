@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
+import { WhatsappChatButton } from "@/components/layout/whatsapp-chat-button";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -50,6 +51,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased">
         {children}
+        <WhatsappChatButton />
         <Toaster richColors position="top-center" />
       </body>
     </html>
