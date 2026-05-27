@@ -53,8 +53,8 @@ export default async function HomePage() {
                 className="rounded-[28px] object-cover shadow-2xl"
               />
               <div className="absolute bottom-5 left-5 rounded-lg bg-white/92 p-4 text-optical-text shadow-soft backdrop-blur">
-                <p className="text-sm font-bold">Starting at Rs. 999</p>
-                <p className="mt-1 text-xs text-optical-muted">Free home try-on available</p>
+                <p className="text-sm font-bold">Expert frame fitting</p>
+                <p className="mt-1 text-xs text-optical-muted">Personal lens advice in Velachery</p>
               </div>
             </div>
           </div>
