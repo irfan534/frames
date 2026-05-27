@@ -8,7 +8,7 @@ export function PublicFooter() {
 
   return (
     <footer className="bg-optical-ink text-white">
-      <div className="container-page grid gap-10 py-14 md:grid-cols-[1.2fr_1fr_1fr_1.2fr]">
+      <div className="container-page grid gap-10 py-14 md:grid-cols-[1.2fr_1fr_1fr_1fr_1.2fr]">
         <div>
           <div className="flex items-center gap-2">
             <Image
@@ -62,12 +62,22 @@ export function PublicFooter() {
 
         <div>
           <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-white/55">
+            Legal
+          </h3>
+          <ul className="mt-4 space-y-3 text-sm text-white/75">
+            <li><Link href="/privacy">Privacy Policy</Link></li>
+            <li><Link href="/terms">Terms & Conditions</Link></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-white/55">
             Visit
           </h3>
           <ul className="mt-4 space-y-3 text-sm text-white/75">
             <li className="flex gap-3"><MapPin className="mt-0.5 h-4 w-4" /> {shop.address}</li>
             <li className="flex gap-3"><Phone className="mt-0.5 h-4 w-4" /> {shop.phone}</li>
-            <li className="flex gap-3"><Mail className="mt-0.5 h-4 w-4" /> hello@visionthruoptics.local</li>
+            <li className="flex gap-3"><Mail className="mt-0.5 h-4 w-4" /> {shop.email}</li>
           </ul>
           <div className="mt-5 flex gap-2 text-xs font-bold">
             <span className="rounded bg-white px-2 py-1 text-optical-ink">GPay</span>

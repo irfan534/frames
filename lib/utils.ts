@@ -16,8 +16,9 @@ export function formatCurrency(amount: number | string) {
 
 const DEFAULT_SHOP_NAME = "Vision Thru Optics Velachery";
 const DEFAULT_SHOP_PHONE = "+91 7305319309";
+const DEFAULT_SHOP_EMAIL = "visionthruoptics@gmail.com";
 const DEFAULT_SHOP_ADDRESS =
-  "Vision Thr'u Optics, 153 A, G2, Velachery Bypass Rd, near Spencer's Daily, Velachery, Chennai, Tamil Nadu 600042";
+  "Vision Thru Optics, 153 A, G2, Velachery Bypass Rd, near Spencer's Daily, Velachery, Chennai, Tamil Nadu 600042";
 
 export function getShopConfig() {
   const name = process.env.NEXT_PUBLIC_SHOP_NAME || DEFAULT_SHOP_NAME;
@@ -36,6 +37,7 @@ export function getShopConfig() {
   return {
     name,
     phone,
+    email: DEFAULT_SHOP_EMAIL,
     whatsappNumber: phone.replace(/\D/g, ""),
     address,
     googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`,

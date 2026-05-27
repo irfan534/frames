@@ -72,6 +72,17 @@ export default function ContactPage() {
             <div className="mt-5">
               <ContactForm />
             </div>
+            <p className="mt-4 text-sm text-optical-muted">
+              By submitting this form you agree to our{" "}
+              <Link href="/terms" className="font-semibold text-primary">
+                Terms & Conditions
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" className="font-semibold text-primary">
+                Privacy Policy
+              </Link>
+              .
+            </p>
           </section>
         </div>
       </main>

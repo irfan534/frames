@@ -39,8 +39,9 @@ export default async function HomePage() {
             </div>
             <div className="relative min-h-[420px]">
               <div className="absolute inset-0 rounded-[28px] bg-white/10" />
+              {/* TODO: Replace with actual shop photo — upload as /public/images/hero.jpg */}
               <Image
-                src="https://images.unsplash.com/photo-1509695507497-903c140c43b0?auto=format&fit=crop&w=1200&q=88"
+                src="/images/hero.svg"
                 alt="Person wearing premium eyeglasses"
                 fill
                 priority

@@ -1,0 +1,13 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Vision Thru Optics</title>
+  <desc id="desc">Premium Frames and Lenses placeholder artwork</desc>
+  <rect width="1200" height="900" fill="#082f35"/>
+  <rect x="86" y="82" width="1028" height="736" rx="48" fill="#0f766e" opacity="0.24"/>
+  <circle cx="360" cy="418" r="126" stroke="#ffffff" stroke-width="28" opacity="0.88"/>
+  <circle cx="840" cy="418" r="126" stroke="#ffffff" stroke-width="28" opacity="0.88"/>
+  <path d="M486 418C524 386 676 386 714 418" stroke="#ffffff" stroke-width="28" stroke-linecap="round" opacity="0.88"/>
+  <path d="M234 397C178 365 140 354 104 365" stroke="#ffffff" stroke-width="24" stroke-linecap="round" opacity="0.78"/>
+  <path d="M966 397C1022 365 1060 354 1096 365" stroke="#ffffff" stroke-width="24" stroke-linecap="round" opacity="0.78"/>
+  <text x="600" y="628" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700">Vision Thru Optics</text>
+  <text x="600" y="700" text-anchor="middle" fill="#d7fffb" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="500">Premium Frames &amp; Lenses</text>
+</svg>
