@@ -40,13 +40,13 @@ export default async function HomePage() {
             <div className="relative min-h-[420px]">
               <div className="absolute inset-0 rounded-[28px] bg-white/10" />
               {/*
-                Photo by GlassesShop on Unsplash
-                https://unsplash.com/photos/OOUtDEzroy8?utm_source=vision_thru_optics&utm_medium=referral
+                Photo by Josh Calabrese on Unsplash
+                https://unsplash.com/photos/qmnpqDwla_E?utm_source=vision_thru_optics&utm_medium=referral
                 Free to use under Unsplash License — commercial use allowed
               */}
               <Image
-                src="https://images.unsplash.com/photo-1739758443031-8d1cfc897236?auto=format&fit=crop&w=1200&q=88"
-                alt="A man wearing glasses and a brown shirt"
+                src="https://images.unsplash.com/photo-1516714819001-8ee7a13b71d7?auto=format&fit=crop&w=1200&q=88"
+                alt="Person holding eyeglasses"
                 fill
                 priority
                 sizes="(min-width: 1024px) 520px, 100vw"
