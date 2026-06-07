@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
@@ -60,8 +59,7 @@ export function LoginForm() {
       setLoading(false);
     }
 
-    router.push(searchParams.get("next") || "/admin");
-    router.refresh();
+    window.location.assign(getAdminRedirect(searchParams.get("next")));
   }
 
   return (
@@ -90,4 +88,12 @@ export function LoginForm() {
       </Button>
     </form>
   );
+}
+
+function getAdminRedirect(next: string | null) {
+  if (next?.startsWith("/admin") && !next.startsWith("/admin/login")) {
+    return next;
+  }
+
+  return "/admin";
 }
