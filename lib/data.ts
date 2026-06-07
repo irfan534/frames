@@ -146,6 +146,41 @@ export async function getProduct(id: string) {
   return data as Frame | null;
 }
 
+export async function getComboProducts(product: Frame) {
+  if (product.offer_type !== "combo" || !product.offer_label) return [];
+
+  if (!isSupabaseConfigured()) {
+    return sampleFrames.filter((frame) => isMatchingComboFrame(frame, product));
+  }
+
+  const supabase = createSupabasePublicClient();
+  if (!supabase) return [];
+
+  let request = supabase
+    .from("frames")
+    .select(frameColumns)
+    .eq("is_active", true)
+    .eq("offer_type", "combo")
+    .eq("offer_label", product.offer_label)
+    .order("created_at", { ascending: true })
+    .limit(8);
+
+  request = product.offer_description
+    ? request.eq("offer_description", product.offer_description)
+    : request.is("offer_description", null);
+
+  const { data, error } = await request;
+
+  if (error) {
+    logDataWarning("combo products", error);
+    return [];
+  }
+
+  return ((data || []) as unknown as Frame[]).filter((frame) =>
+    isMatchingComboFrame(frame, product)
+  );
+}
+
 export async function getAdminFrames() {
   noStore();
 
@@ -281,6 +316,15 @@ function sortSampleRows(rows: Frame[], sort?: string) {
   if (sort === "price-desc") return rows.sort((a, b) => Number(b.price) - Number(a.price));
   if (sort === "new") return rows.sort((a, b) => b.created_at.localeCompare(a.created_at));
   return rows.sort((a, b) => b.quantity - a.quantity);
+}
+
+function isMatchingComboFrame(frame: Frame, product: Frame) {
+  return (
+    frame.is_active &&
+    frame.offer_type === "combo" &&
+    frame.offer_label === product.offer_label &&
+    (frame.offer_description || null) === (product.offer_description || null)
+  );
 }
 
 function isMissingOptionalFrameColumn(error: { message?: string } | null) {

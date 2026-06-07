@@ -132,6 +132,7 @@ create table if not exists public.contact_messages (
 
 alter table public.contact_messages enable row level security;
 
+drop policy if exists "Admins can read contact messages" on public.contact_messages;
 create policy "Admins can read contact messages"
 on public.contact_messages for select
 to authenticated using (public.is_admin());

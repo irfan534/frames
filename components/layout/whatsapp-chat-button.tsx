@@ -1,13 +1,19 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { getShopConfig } from "@/lib/utils";
 
 const WHATSAPP_MESSAGE =
   "Hi!%20I%27d%20like%20to%20enquire%20about%20your%20frames.";
 
 export function WhatsappChatButton() {
+  const pathname = usePathname();
   const { whatsappNumber } = getShopConfig();
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${WHATSAPP_MESSAGE}`;
+
+  if (pathname.startsWith("/admin")) {
+    return null;
+  }
 
   return (
     <a

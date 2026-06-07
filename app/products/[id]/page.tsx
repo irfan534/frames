@@ -7,7 +7,7 @@ import { ProductGallery } from "@/components/public/product-gallery";
 import { ProductCard } from "@/components/public/product-card";
 import { QuantityAdd } from "@/components/public/quantity-add";
 import { StoreShell } from "@/components/public/store-shell";
-import { getProduct, getProducts } from "@/lib/data";
+import { getComboProducts, getProduct, getProducts } from "@/lib/data";
 import { formatCurrency, frameColors, frameGalleryImages, stockLabel } from "@/lib/utils";
 
 type Params = Promise<{ id: string }>;
@@ -31,8 +31,15 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
   if (!product) notFound();
 
   const related = await getProducts({ category: product.category || undefined, limit: 4 });
+  const comboProducts = await getComboProducts(product);
   const images = frameGalleryImages(product);
   const colors = frameColors(product);
+  const orderedComboProducts = product.offer_type === "combo"
+    ? [
+        ...comboProducts.filter((frame) => frame.id === product.id),
+        ...comboProducts.filter((frame) => frame.id !== product.id)
+      ]
+    : [];
 
   return (
     <StoreShell>
@@ -99,6 +106,27 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
             </div>
           </div>
         </section>
+
+        {orderedComboProducts.length > 1 ? (
+          <section className="mt-12">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <Badge variant="warning">{product.offer_label || "Combo Offer"}</Badge>
+                <h2 className="mt-3 font-display text-4xl font-bold">Combo includes</h2>
+              </div>
+              {product.offer_description ? (
+                <p className="max-w-xl text-sm leading-6 text-optical-muted">
+                  {product.offer_description}
+                </p>
+              ) : null}
+            </div>
+            <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {orderedComboProducts.map((frame) => (
+                <ProductCard key={frame.id} frame={frame} />
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section className="mt-12 rounded-lg border border-border bg-white p-6">
           <Tabs defaultValue="description">
